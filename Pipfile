@@ -1,0 +1,21 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+redis = "*"
+ipython = "*"
+httpx = "*"
+strenum = "*"
+tenacity = "*"
+quart = "*"
+hypercorn = "*"
+arq = "*"
+quart-cors = "*"
+
+[dev-packages]
+autopep8 = "*"
+
+[requires]
+python_version = "3.10"
