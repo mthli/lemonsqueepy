@@ -1,0 +1,22 @@
+{
+  "apps": [
+    {
+      "name": "lemonsqueepy-app",
+      "script": "python3 -m pipenv run hypercorn app:app",
+      "exec_mode": "fork",
+      "kill_timeout": 5000,
+      "listen_timeout": 10000,
+      "max_memory_restart": "256M",
+      "watch": false
+    },
+    {
+      "name": "lemonsqueepy-arq",
+      "script": "python3 -m pipenv run arq app.WorkerSettings",
+      "exec_mode": "fork",
+      "kill_timeout": 5000,
+      "listen_timeout": 10000,
+      "max_memory_restart": "768M",
+      "watch": false
+    }
+  ]
+}
