@@ -13,6 +13,7 @@ quart = "*"
 hypercorn = "*"
 arq = "*"
 quart-cors = "*"
+pymongo = "*"
 
 [dev-packages]
 autopep8 = "*"
