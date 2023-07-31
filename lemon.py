@@ -1,10 +1,31 @@
 import hashlib
 import hmac
 
+from enum import unique
 from quart import abort
+from strenum import StrEnum
 from werkzeug.datastructures import Headers
 
 from rds import rds, LEMONSQUEEZY_SIGNING_SECRET
+
+
+# https://docs.lemonsqueezy.com/help/webhooks#event-types
+@unique
+class Event(StrEnum):
+    ORDER_CREATED = 'order_created'
+    ORDER_REFUNDED = 'order_refunded'
+    SUBSCRIPTION_CREATED = 'subscription_created'
+    SUBSCRIPTION_UPDATED = 'subscription_updated'
+    SUBSCRIPTION_CANCELLED = 'subscription_cancelled'
+    SUBSCRIPTION_RESUMED = 'subscription_resumed'
+    SUBSCRIPTION_EXPIRED = 'subscription_expired'
+    SUBSCRIPTION_PAUSED = 'subscription_paused'
+    SUBSCRIPTION_UNPAUSED = 'subscription_unpaused'
+    SUBSCRIPTION_PAYMENT_SUCCESS = 'subscription_payment_success'
+    SUBSCRIPTION_PAYMENT_FAILED = 'subscription_payment_failed'
+    SUBSCRIPTION_PAYMENT_RECOVERED = 'subscription_payment_recovered'
+    LICENSE_KEY_CREATED = 'license_key_created'
+    LICENSE_KEY_UPDATED = 'license_key_updated'
 
 
 # https://docs.lemonsqueezy.com/help/webhooks#signing-requests
@@ -20,3 +41,15 @@ def check_signing_secret(headers: Headers, body: bytes):
     digest = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
     if not hmac.compare_digest(digest, signature):
         abort(400, f'invalid signature, signature={signature}')
+
+
+# https://docs.lemonsqueezy.com/help/webhooks#webhook-requests
+def parse_event(headers: Headers) -> str:
+    event = headers.get(key='X-Event-Name', default='', type='')
+    if not event:
+        abort(400, '"X-Event-Name" not exists')
+
+    try:
+        return str(Event[event.upper()])
+    except Exception:
+        abort(400, 'invalid event, event={event}')
