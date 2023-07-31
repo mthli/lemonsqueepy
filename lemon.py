@@ -6,6 +6,9 @@ from quart import abort
 from strenum import StrEnum
 from werkzeug.datastructures import Headers
 
+from mongo.licenses import insert_license
+from mongo.orders import insert_order
+from mongo.subscriptions import insert_subscription
 from rds import rds, LEMONSQUEEZY_SIGNING_SECRET
 
 
@@ -58,22 +61,10 @@ def parse_event(headers: Headers) -> Event:
 # https://docs.lemonsqueezy.com/help/webhooks#webhook-requests
 async def dispatch_event(event: Event, body: dict):
     if str(event).startswith('order_'):
-        await _dispatch_order_event(event, body)
+        await insert_order(body)
     elif str(event).startswith('subscription_'):
-        await _dispatch_subscription_event(event, body)
+        await insert_subscription(body)
     elif str(event).startswith('license_'):
-        await _dispatch_license_event(event, body)
+        await insert_license(body)
     else:
         abort(400, f'unsupported event, event={str(event)}')
-
-
-async def _dispatch_order_event(event: Event, body: dict):
-    pass  # TODO (Matthew Lee) ...
-
-
-async def _dispatch_subscription_event(event: Event, body: dict):
-    pass  # TODO (Matthew Lee) ...
-
-
-async def _dispatch_license_event(event: Event, body: dict):
-    pass  # TODO (Matthew Lee) ...
