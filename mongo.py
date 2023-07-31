@@ -1,6 +1,7 @@
-from pymongo import MongoClient
+from motor.motor_asyncio import AsyncIOMotorClient
 
-_client = MongoClient('mongodb://localhost:27017')  # default host and port.
+# Default host and port.
+_client = AsyncIOMotorClient('localhost', 27017)
 _db = _client['lemonsqueezy']  # database.
 
 orders = _db['orders']  # collection.

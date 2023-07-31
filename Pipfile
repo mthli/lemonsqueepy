@@ -12,7 +12,7 @@ tenacity = "*"
 quart = "*"
 hypercorn = "*"
 quart-cors = "*"
-pymongo = "*"
+motor = "*"
 
 [dev-packages]
 autopep8 = "*"
