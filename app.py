@@ -39,4 +39,4 @@ async def webhooks():
     event = parse_event(request.headers)
     await dispatch_event(event, body)
 
-    return {}
+    return {}  # 200.
