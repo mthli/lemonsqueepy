@@ -14,6 +14,7 @@ hypercorn = "*"
 quart-cors = "*"
 motor = "*"
 quart-auth = "*"
+quart-session = "*"
 
 [dev-packages]
 autopep8 = "*"
