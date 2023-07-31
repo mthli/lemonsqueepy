@@ -4,6 +4,7 @@ import redis
 from redis import asyncio as aioredis
 
 LEMONSQUEEZY_API_KEY = 'lemonsqueezy_api_key'  # string.
+LEMONSQUEEZY_SIGNING_SECRET = 'lemonsqueezy_signing_secret'  # string.
 
 # Default host and port.
 rds = redis.from_url('redis://localhost:6379')
