@@ -9,7 +9,7 @@ from werkzeug.datastructures import Headers
 from mongo.licenses import insert_license
 from mongo.orders import insert_order
 from mongo.subscriptions import insert_subscription
-from rds import rds, LEMONSQUEEZY_SIGNING_SECRET
+from rds import get_key_from_rds, LEMONSQUEEZY_SIGNING_SECRET
 
 
 # https://docs.lemonsqueezy.com/help/webhooks#event-types
@@ -33,14 +33,11 @@ class Event(StrEnum):
 
 # https://docs.lemonsqueezy.com/help/webhooks#signing-requests
 def check_signing_secret(headers: Headers, body: bytes):
-    secret = rds.get(LEMONSQUEEZY_SIGNING_SECRET).decode()
-    if not secret:
-        abort(500, f'"{LEMONSQUEEZY_SIGNING_SECRET}" not exists')
-
     signature = headers.get(key='X-Signature', default='', type=str)
     if not signature:
         abort(400, f'"X-Signature" not exists')
 
+    secret = get_key_from_rds(LEMONSQUEEZY_SIGNING_SECRET)
     digest = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
     if not hmac.compare_digest(digest, signature):
         abort(400, f'invalid signature, signature={signature}')
