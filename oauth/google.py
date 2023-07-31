@@ -1,20 +1,13 @@
 from urllib.parse import urlencode
-from uuid import uuid4
 
-from rds import rds, \
-    get_key_from_rds, \
-    GOOGLE_OAUTH_CLIENT_ID, \
-    GOOGLE_OAUTH_REDIRECT_URI
+from rds import get_key_from_rds, GOOGLE_OAUTH_CLIENT_ID
 
 
 # https://developers.google.com/identity/openid-connect/openid-connect#sendauthrequest
-def build_google_oauth_url() -> str:
-    state = str(uuid4())
-    # TODO (Matthew Lee) save state to session.
-
+def build_google_oauth_url(redirect_uri: str, state: str) -> str:
     params = {
         'client_id': get_key_from_rds(GOOGLE_OAUTH_CLIENT_ID),
-        'redirect_uri': get_key_from_rds(GOOGLE_OAUTH_REDIRECT_URI),
+        'redirect_uri': redirect_uri,
         'response_type': 'code',
         'scope': 'openid email profile',
         'state': state,

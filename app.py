@@ -1,15 +1,23 @@
 import secrets
+import uuid
 
-from quart import Quart, json, request
+from quart import Quart, abort, json, request, session
 from quart_auth import QuartAuth
 from quart_cors import cors
+from quart_session import Session
 from werkzeug.exceptions import HTTPException
 
 from lemon import check_signing_secret, parse_event, dispatch_event
+from oauth.google import build_google_oauth_url
 from logger import logger
 
 app = Quart(__name__)
 app = cors(app, allow_origin='*')
+
+# Default host and port.
+# https://github.com/kroketio/quart-session
+app.config['SESSION_TYPE'] = 'redis'
+Session(app)
 
 # https://github.com/pgjones/quart-auth
 app.config['QUART_AUTH_MODE'] = 'bearer'
@@ -49,3 +57,39 @@ async def lemonsqueezy_webhooks():
     await dispatch_event(event, body)
 
     return {}  # 200.
+
+
+# ?redirect_uri=str
+@app.get('/api/google/oauth')
+async def get_google_oauth_url():
+    redirect_uri = request.args.get('redirect_uri', '').strip()
+    if not redirect_uri:
+        abort(400, '"redirect_uri" not exists')
+
+    state = str(uuid.uuid4())
+    session['state'] = state
+    url = build_google_oauth_url(redirect_uri, state)
+
+    return {
+        'url': url,
+    }
+
+
+# ?code=str&redirect_uri=str&state=str
+@app.post('/api/google/oauth')
+async def on_google_oauth_success():
+    state = request.args.get('state', '').strip()
+    if not state:
+        abort(400, '"state" not exists')
+    if state != session['state']:
+        abort(403, f'invalid state, state={state}')
+
+    code = request.args.get('code', '').strip()
+    if not code:
+        abort(400, '"code" not exists')
+
+    redirect_uri = request.args.get('redirect_uri', '').strip()
+    if not redirect_uri:
+        abort(400, '"redirect_uri" not exists')
+
+    # TODO (Matthew Lee) ...
