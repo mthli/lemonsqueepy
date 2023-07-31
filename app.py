@@ -2,7 +2,7 @@ from quart import Quart, json, request
 from quart_cors import cors
 from werkzeug.exceptions import HTTPException
 
-from lemon import check_signing_secret, parse_event
+from lemon import check_signing_secret, parse_event, dispatch_event
 from logger import logger
 
 app = Quart(__name__)
@@ -37,6 +37,6 @@ async def webhooks():
     check_signing_secret(request.headers, data)
 
     event = parse_event(request.headers)
-    # TODO (Matthew Lee) dispatch event...
+    await dispatch_event(event, body)
 
     return {}

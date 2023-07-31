@@ -44,12 +44,36 @@ def check_signing_secret(headers: Headers, body: bytes):
 
 
 # https://docs.lemonsqueezy.com/help/webhooks#webhook-requests
-def parse_event(headers: Headers) -> str:
+def parse_event(headers: Headers) -> Event:
     event = headers.get(key='X-Event-Name', default='', type='')
     if not event:
         abort(400, '"X-Event-Name" not exists')
 
     try:
-        return str(Event[event.upper()])
+        return Event[event.upper()]
     except Exception:
         abort(400, 'invalid event, event={event}')
+
+
+# https://docs.lemonsqueezy.com/help/webhooks#webhook-requests
+async def dispatch_event(event: Event, body: dict):
+    if str(event).startswith('order_'):
+        await _dispatch_order_event(event, body)
+    elif str(event).startswith('subscription_'):
+        await _dispatch_subscription_event(event, body)
+    elif str(event).startswith('license_'):
+        await _dispatch_license_event(event, body)
+    else:
+        abort(400, f'unsupported event, event={str(event)}')
+
+
+async def _dispatch_order_event(event: Event, body: dict):
+    pass  # TODO (Matthew Lee) ...
+
+
+async def _dispatch_subscription_event(event: Event, body: dict):
+    pass  # TODO (Matthew Lee) ...
+
+
+async def _dispatch_license_event(event: Event, body: dict):
+    pass  # TODO (Matthew Lee) ...
