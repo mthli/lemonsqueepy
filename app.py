@@ -1,4 +1,7 @@
+import secrets
+
 from quart import Quart, json, request
+from quart_auth import QuartAuth
 from quart_cors import cors
 from werkzeug.exceptions import HTTPException
 
@@ -7,6 +10,11 @@ from logger import logger
 
 app = Quart(__name__)
 app = cors(app, allow_origin='*')
+
+# https://github.com/pgjones/quart-auth
+app.config['QUART_AUTH_MODE'] = 'bearer'
+app.secret_key = secrets.token_urlsafe(16)
+auth_manager = QuartAuth(app)
 
 
 # https://flask.palletsprojects.com/en/2.2.x/errorhandling/#generic-exception-handler
