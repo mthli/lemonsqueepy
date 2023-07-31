@@ -2,6 +2,8 @@
 
 [Lemon Squeezy](https://www.lemonsqueezy.com/) with Python 🐍
 
+**UNDER DEVELOPMENT.**
+
 ## License
 
 ```

@@ -36,10 +36,11 @@ def handle_exception(e: HTTPException):
 
 
 # https://docs.lemonsqueezy.com/help/webhooks#webhook-requests
-@app.post('/api/webhooks')
-async def webhooks():
+@app.post('/api/lemonsqueezy/webhooks')
+async def lemonsqueezy_webhooks():
+    # Always record webhooks body for debugging.
     body: dict = await request.get_json() or {}
-    logger.info(f'webhooks, body={json.dumps(body)}')  # always record.
+    logger.info(f'/api/lemonsqueezy/webhooks, body={json.dumps(body)}')
 
     data = await request.get_data()  # raw body.
     check_signing_secret(request.headers, data)

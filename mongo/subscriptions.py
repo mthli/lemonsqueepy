@@ -1,7 +1,8 @@
 from mongo.db import subscriptions
 
 
-# https://motor.readthedocs.io/en/stable/tutorial-asyncio.html#inserting-a-document
-async def insert_subscription(document: dict):
-    res = await subscriptions.insert_one(document)
+# https://docs.lemonsqueezy.com/api/subscriptions#the-subscription-object
+# https://docs.lemonsqueezy.com/api/subscription-invoices#the-subscription-invoice-object
+async def insert_subscription(subscription: dict):
+    res = await subscriptions.insert_one(subscription)
     return res.inserted_id
