@@ -15,6 +15,7 @@ quart-cors = "*"
 motor = "*"
 quart-auth = "*"
 quart-session = "*"
+validators = "*"
 
 [dev-packages]
 autopep8 = "*"

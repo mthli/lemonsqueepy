@@ -1,19 +1,23 @@
 import httpx
 
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 
 from quart import abort
 
 from rds import get_key_from_rds, \
     GOOGLE_OAUTH_CLIENT_ID, \
-    GOOGLE_OAUTH_CLIENT_SECRET
+    GOOGLE_OAUTH_CLIENT_SECRET, \
+    GOOGLE_OAUTH_REDIRECT_HOST
+from utils import is_url
+
+GOOGLE_OAUTH_REDIRECT_PATH = '/api/google/oauth/redirect'
 
 
 # https://developers.google.com/identity/openid-connect/openid-connect#sendauthrequest
-def build_google_oauth_url(redirect_uri: str, state: str) -> str:
+def build_google_oauth_url(state: str) -> str:
     params = {
         'client_id': get_key_from_rds(GOOGLE_OAUTH_CLIENT_ID),
-        'redirect_uri': redirect_uri,
+        'redirect_uri': _build_google_oauth_redirect_uri(),
         'response_type': 'code',
         'scope': 'openid email profile',
         'state': state,
@@ -27,12 +31,12 @@ def build_google_oauth_url(redirect_uri: str, state: str) -> str:
 
 
 # https://developers.google.com/identity/openid-connect/openid-connect#exchangecode
-async def exchange_code_for_access_token_and_id_token(code: str, redirect_uri: str):
+async def exchange_code_for_access_token_and_id_token(code: str):
     data = {
         'client_id': get_key_from_rds(GOOGLE_OAUTH_CLIENT_ID),
         'client_secret': get_key_from_rds(GOOGLE_OAUTH_CLIENT_SECRET),
         'code': code,
-        'redirect_uri': redirect_uri,
+        'redirect_uri': _build_google_oauth_redirect_uri(),
         'grant_type': 'authorization_code',
     }
 
@@ -45,6 +49,23 @@ async def exchange_code_for_access_token_and_id_token(code: str, redirect_uri: s
         abort(500, '"id_token" not exists')
 
     # TODO (Matthew Lee) ...
+
+
+# https://developers.google.com/identity/openid-connect/openid-connect#setredirecturi
+def _build_google_oauth_redirect_uri() -> str:
+    host = get_key_from_rds(GOOGLE_OAUTH_REDIRECT_HOST).rstrip('/')
+    if not host:
+        abort(500, f'"{GOOGLE_OAUTH_REDIRECT_HOST}" not exists')
+
+    url = f'{host}{GOOGLE_OAUTH_REDIRECT_PATH}'
+    if not is_url(url):
+        abort(500, f'invalid "{GOOGLE_OAUTH_REDIRECT_HOST}"')
+
+    parsed = urlparse(url)
+    if not parsed.scheme:
+        url = f'https://{url}'
+
+    return url
 
 
 async def _send_form_encoded_data(url: str, data: dict) -> httpx.Response:

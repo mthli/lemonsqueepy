@@ -10,7 +10,8 @@ from werkzeug.exceptions import HTTPException
 from constants import APPLICATION_JSON
 from lemon import check_signing_secret, parse_event, dispatch_event
 from mongo.customers import setup_customers
-from oauth.google import build_google_oauth_url, \
+from oauth.google import GOOGLE_OAUTH_REDIRECT_PATH, \
+    build_google_oauth_url, \
     exchange_code_for_access_token_and_id_token
 from logger import logger
 
@@ -68,38 +69,23 @@ async def lemonsqueezy_webhooks():
     return {}  # 200.
 
 
-# ?redirect_uri=str
 @app.get('/api/google/oauth')
 async def get_google_oauth_url():
-    redirect_uri = request.args.get('redirect_uri', '').strip()
-    if not redirect_uri:
-        abort(400, '"redirect_uri" not exists')
-
     state = str(uuid.uuid4())
     session['state'] = state
-    url = build_google_oauth_url(redirect_uri, state)
-
     return {
-        'url': url,
+        'url': build_google_oauth_url(state),
     }
 
 
-# ?code=str&redirect_uri=str&state=str
-@app.get('/api/google/oauth/redirect')
+# https://developers.google.com/identity/openid-connect/openid-connect#confirmxsrftoken
+@app.get(GOOGLE_OAUTH_REDIRECT_PATH)
 async def on_google_oauth_success():
     state = request.args.get('state', '').strip()
-    if not state:
-        abort(400, '"state" not exists')
     if state != session['state']:
         abort(403, f'invalid state, state={state}')
 
     code = request.args.get('code', '').strip()
-    if not code:
-        abort(400, '"code" not exists')
-
-    redirect_uri = request.args.get('redirect_uri', '').strip()
-    if not redirect_uri:
-        abort(400, '"redirect_uri" not exists')
+    await exchange_code_for_access_token_and_id_token(code)
 
     # TODO (Matthew Lee) ...
-    await exchange_code_for_access_token_and_id_token(code, redirect_uri)
