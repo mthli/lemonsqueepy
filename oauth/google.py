@@ -40,6 +40,10 @@ async def exchange_code_for_access_token_and_id_token(code: str, redirect_uri: s
     response = await _send_form_encoded_data(url, data)
     body: dict = response.json()
 
+    id_token = body.get('id_token', '').strip()
+    if not id_token:
+        abort(500, '"id_token" not exists')
+
     # TODO (Matthew Lee) ...
 
 

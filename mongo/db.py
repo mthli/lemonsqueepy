@@ -4,6 +4,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 _client = AsyncIOMotorClient('localhost', 27017)
 _db = _client['lemonsqueezy']  # database.
 
-orders = _db['orders']  # collection.
+customers = _db['customers']  # collection.
 licenses = _db['licenses']  # collection.
+orders = _db['orders']  # collection.
 subscriptions = _db['subscriptions']  # collection.

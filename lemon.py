@@ -2,6 +2,7 @@ import hashlib
 import hmac
 
 from enum import unique
+
 from quart import abort
 from strenum import StrEnum
 from werkzeug.datastructures import Headers

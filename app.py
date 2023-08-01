@@ -9,6 +9,7 @@ from werkzeug.exceptions import HTTPException
 
 from constants import APPLICATION_JSON
 from lemon import check_signing_secret, parse_event, dispatch_event
+from mongo.customers import setup_customers
 from oauth.google import build_google_oauth_url, \
     exchange_code_for_access_token_and_id_token
 from logger import logger
@@ -25,6 +26,12 @@ Session(app)
 app.config['QUART_AUTH_MODE'] = 'bearer'
 app.secret_key = secrets.token_urlsafe(16)
 auth_manager = QuartAuth(app)
+
+
+# https://pgjones.gitlab.io/quart/how_to_guides/startup_shutdown.html
+@app.before_serving
+async def before_serving():
+    await setup_customers()
 
 
 # https://flask.palletsprojects.com/en/2.2.x/errorhandling/#generic-exception-handler
@@ -78,7 +85,7 @@ async def get_google_oauth_url():
 
 
 # ?code=str&redirect_uri=str&state=str
-@app.post('/api/google/oauth')
+@app.get('/api/google/oauth/redirect')
 async def on_google_oauth_success():
     state = request.args.get('state', '').strip()
     if not state:
