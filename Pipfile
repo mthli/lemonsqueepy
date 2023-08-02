@@ -16,6 +16,7 @@ motor = "*"
 quart-auth = "*"
 validators = "*"
 pyjwt = "*"
+pycryptodome = "*"
 
 [dev-packages]
 autopep8 = "*"
