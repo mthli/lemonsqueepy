@@ -14,7 +14,7 @@ async def has_available_order(
     user_id: str,
     store_id: int,
     product_id: int,
-    variant_id: int = 1,  # as the “default” variant.
+    variant_id: int = 1,  # as the "default" variant.
     test_mode: bool = False,
 ) -> bool:
     cursor = orders \
@@ -26,6 +26,11 @@ async def has_available_order(
             'data.attributes.first_order_item.variant_id': variant_id,
             'data.attributes.test_mode': test_mode,
         }) \
-        .sort('data.attributes.updated_at') \
+        .sort('data.attributes.updated_at', -1) \
         .limit(1)
-    # TODO (Matthew Lee) ...
+
+    res: list[dict] = []
+    async for order in cursor:
+        res.append(order)
+
+    return bool(res)
