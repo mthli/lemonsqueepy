@@ -7,10 +7,10 @@ from quart_auth import QuartAuth
 from quart_cors import cors
 from werkzeug.exceptions import HTTPException
 
-from google import upsert_customer_from_google_oauth
 from lemon import check_signing_secret, parse_event, dispatch_event
 from logger import logger
 from mongo.customers import setup_customers
+from oauth import upsert_customer_from_google_oauth
 
 app = Quart(__name__)
 app = cors(app, allow_origin='*')
