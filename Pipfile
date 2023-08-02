@@ -16,6 +16,7 @@ motor = "*"
 quart-auth = "*"
 quart-session = "*"
 validators = "*"
+pyjwt = "*"
 
 [dev-packages]
 autopep8 = "*"
