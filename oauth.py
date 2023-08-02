@@ -1,12 +1,12 @@
 import json
 import time
-import uuid
 
 import jwt
 import validators
 
 from base64 import b64encode
 from dataclasses import asdict
+from uuid import uuid4
 
 from Crypto.Cipher import AES
 from jwt import PyJWKClient
@@ -26,7 +26,7 @@ _jwk_client = PyJWKClient(
 
 
 # Looks like we don't need to decode the customer token for now.
-def generate_customer_token(id: str, secret='') -> str:
+def generate_customer_token(id: str, secret: str = '') -> str:
     secret = secret.strip()
     if not secret:
         secret = get_key_from_rds(LEMONSQUEEZY_SIGNING_SECRET)
@@ -59,7 +59,7 @@ async def upsert_customer_from_google_oauth(credential: str) -> Customer:
 
     customer = await find_customer_by_email(email)
     if not customer:
-        id = str(uuid.uuid4())
+        id = str(uuid4())
         customer = Customer(
             id=id,
             email=email,
