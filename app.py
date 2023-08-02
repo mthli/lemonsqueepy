@@ -8,7 +8,9 @@ from werkzeug.exceptions import HTTPException
 from lemon import check_signing_secret, parse_event, dispatch_event
 from logger import logger
 from mongo.customers import Customer, setup_customers, upsert_customer
-from oauth import generate_customer_token, upsert_customer_from_google_oauth
+from oauth import generate_customer_token, \
+    parse_customer_token_from_request, \
+    upsert_customer_from_google_oauth
 
 app = Quart(__name__)
 app = cors(app, allow_origin='*')
@@ -39,6 +41,10 @@ def handle_exception(e: HTTPException):
 
 
 # Register anonymous customer.
+#
+# After register,
+# all requests' headers should contain `"Authorization": "Bearer CUSTOMER_TOKEN"`,
+# and the `CUSTOMER_TOKEN` value comes from `customer.token`.
 @app.post('/api/customer/register')
 async def register():
     id = str(uuid4())
@@ -62,7 +68,12 @@ async def google_oauth():
     if not credential:
         abort(400, '"credential" must not empty')
 
-    customer = await upsert_customer_from_google_oauth(credential)
+    customer_token = await parse_customer_token_from_request()
+    customer = await upsert_customer_from_google_oauth(
+        credential=credential,
+        customer_token=customer_token,
+    )
+
     return asdict(customer)
 
 

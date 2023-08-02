@@ -46,7 +46,7 @@ def check_signing_secret(headers: Headers, body: bytes):
 
 # https://docs.lemonsqueezy.com/help/webhooks#webhook-requests
 def parse_event(headers: Headers) -> Event:
-    event = headers.get(key='X-Event-Name', default='', type='')
+    event = headers.get(key='X-Event-Name', default='', type=str)
     if not event:
         abort(400, '"X-Event-Name" not exists')
 

@@ -10,10 +10,13 @@ from uuid import uuid4
 
 from Crypto.Cipher import AES
 from jwt import PyJWKClient
-from quart import abort
+from quart import abort, request
 from validators import ValidationFailure
 
-from mongo.customers import Customer, Token, TokenInfo, find_customer_by_email, upsert_customer
+from mongo.customers import Customer, Token, TokenInfo, \
+    find_customer_by_email, \
+    find_customer_by_token, \
+    upsert_customer
 from rds import get_key_from_rds, GOOGLE_OAUTH_CLIENT_ID, LEMONSQUEEZY_SIGNING_SECRET
 
 # FIXME (Matthew Lee) not support asyncio for now.
@@ -45,7 +48,33 @@ def generate_customer_token(id: str, secret: str = '') -> str:
     return b64encode(token)
 
 
-async def upsert_customer_from_google_oauth(credential: str) -> Customer:
+async def parse_customer_token_from_request(required: bool = True) -> str:
+    auth = request.authorization
+    if not auth:
+        if required:
+            abort(400, '"Authorization" not exists')
+        return ''
+
+    if auth.type != 'Bearer':
+        if required:
+            abort(400, f'"Authorization" type must be "Bearer", type={auth.type}')  # nopep8.
+        return ''
+
+    token = (auth.token if auth.token else '').strip()
+    if not token:
+        if required:
+            abort(400, '"Authorization" token must not empty')
+        return ''
+
+    if required:
+        customer = await find_customer_by_token(token)
+        if not customer:
+            abort(403, f'invalid "Authorization", token={token}')
+
+    return token
+
+
+async def upsert_customer_from_google_oauth(credential: str, customer_token: str = '') -> Customer:
     payload = _decode_google_oauth_credential(credential)
 
     email = payload.get('email', '').strip()
@@ -57,18 +86,25 @@ async def upsert_customer_from_google_oauth(credential: str) -> Customer:
     name = payload.get('name', '').strip()
     avatar = payload.get('picture', '').strip()
 
-    customer = await find_customer_by_email(email)
-    if not customer:
+    customer: Customer | None = None
+    if customer_token:  # first priority.
+        customer = find_customer_by_token(customer_token)
+    if not customer:  # second priority.
+        customer = find_customer_by_email(email)
+
+    if not customer:  # is new customer.
         id = str(uuid4())
         customer = Customer(
             id=id,
-            email=email,
             token=generate_customer_token(id),
+            email=email,
             name=name,
             avatar=avatar,
         )
     else:
-        customer.token = generate_customer_token(customer.id)  # renew.
+        # FIXME (Matthew Lee) should renew customer token here?
+        # customer.token = generate_customer_token(customer.id)
+        customer.email = email
         customer.name = name
         customer.avatar = avatar
 
