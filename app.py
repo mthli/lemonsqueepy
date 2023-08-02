@@ -3,7 +3,6 @@ import secrets
 from quart import Quart, abort, json, request
 from quart_auth import QuartAuth
 from quart_cors import cors
-from quart_session import Session
 from werkzeug.exceptions import HTTPException
 
 from lemon import check_signing_secret, parse_event, dispatch_event
@@ -13,11 +12,6 @@ from oauth import decode_google_oauth_credential
 
 app = Quart(__name__)
 app = cors(app, allow_origin='*')
-
-# Default host and port.
-# https://github.com/kroketio/quart-session
-app.config['SESSION_TYPE'] = 'redis'
-Session(app)
 
 # https://github.com/pgjones/quart-auth
 app.config['QUART_AUTH_MODE'] = 'bearer'
