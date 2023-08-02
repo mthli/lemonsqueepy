@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "864f712552acd5ae9a795f231d6a389221fbaa2606e20d49aa42027fa715f4b9"
+            "sha256": "59cb799d2d0ec3e8b4a26e2565b7353fd79d83511d3eec81b7e6d8cff4013318"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -479,14 +479,6 @@
             ],
             "index": "pypi",
             "version": "==0.18.4"
-        },
-        "quart-auth": {
-            "hashes": [
-                "sha256:827485a934986054afac9f3cfba737cbab4deadaeb3b1b7cf6fbfc1963a15941",
-                "sha256:907c03329108ec62f7d8fbc9c987012333433c0205ffc310cbb6881a30366e5a"
-            ],
-            "index": "pypi",
-            "version": "==0.9.0"
         },
         "quart-cors": {
             "hashes": [

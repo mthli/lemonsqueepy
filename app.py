@@ -1,9 +1,6 @@
-import secrets
-
 from dataclasses import asdict
 
 from quart import Quart, abort, json, request
-from quart_auth import QuartAuth
 from quart_cors import cors
 from werkzeug.exceptions import HTTPException
 
@@ -14,11 +11,6 @@ from oauth import upsert_customer_from_google_oauth
 
 app = Quart(__name__)
 app = cors(app, allow_origin='*')
-
-# https://github.com/pgjones/quart-auth
-app.config['QUART_AUTH_MODE'] = 'bearer'
-app.secret_key = secrets.token_urlsafe(16)
-auth_manager = QuartAuth(app)
 
 
 # https://pgjones.gitlab.io/quart/how_to_guides/startup_shutdown.html
