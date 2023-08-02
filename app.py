@@ -1,7 +1,6 @@
 import secrets
-import uuid
 
-from quart import Quart, abort, json, request, session
+from quart import Quart, abort, json, request
 from quart_auth import QuartAuth
 from quart_cors import cors
 from quart_session import Session
@@ -10,9 +9,6 @@ from werkzeug.exceptions import HTTPException
 from constants import APPLICATION_JSON
 from lemon import check_signing_secret, parse_event, dispatch_event
 from mongo.customers import setup_customers
-from oauth.google import GOOGLE_OAUTH_REDIRECT_PATH, \
-    build_google_oauth_url, \
-    exchange_code_for_access_token_and_id_token
 from logger import logger
 
 app = Quart(__name__)
@@ -69,23 +65,18 @@ async def lemonsqueezy_webhooks():
     return {}  # 200.
 
 
-@app.get('/api/google/oauth')
-async def get_google_oauth_url():
-    state = str(uuid.uuid4())
-    session['state'] = state
-    return {
-        'url': build_google_oauth_url(state),
-    }
-
-
-# https://developers.google.com/identity/openid-connect/openid-connect#confirmxsrftoken
-@app.get(GOOGLE_OAUTH_REDIRECT_PATH)
+# {
+#   'credential': '...',
+# }
+@app.post('/api/google/oauth')
 async def on_google_oauth_success():
-    state = request.args.get('state', '').strip()
-    if state != session['state']:
-        abort(403, f'invalid state, state={state}')
+    body: dict = await request.get_json() or {}
 
-    code = request.args.get('code', '').strip()
-    await exchange_code_for_access_token_and_id_token(code)
+    credential = body.get('credential', '')
+    if not isinstance(credential, str):
+        abort(400, '"credential" must be string')
+    credential = credential.strip()
+    if not credential:
+        abort(400, '"credential" must not empty')
 
     # TODO (Matthew Lee) ...
