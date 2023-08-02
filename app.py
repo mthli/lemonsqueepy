@@ -6,10 +6,10 @@ from quart_cors import cors
 from quart_session import Session
 from werkzeug.exceptions import HTTPException
 
-from constants import APPLICATION_JSON
 from lemon import check_signing_secret, parse_event, dispatch_event
-from mongo.customers import setup_customers
 from logger import logger
+from mongo.customers import setup_customers
+from oauth import decode_google_oauth_credential
 
 app = Quart(__name__)
 app = cors(app, allow_origin='*')
@@ -44,7 +44,7 @@ def handle_exception(e: HTTPException):
         'name': e.name,
         'description': e.description,
     })
-    response.content_type = APPLICATION_JSON
+    response.content_type = 'application/json'
     logger.error(f'errorhandler, data={response.data}')
     return response
 
@@ -79,4 +79,5 @@ async def on_google_oauth_success():
     if not credential:
         abort(400, '"credential" must not empty')
 
+    decoded = decode_google_oauth_credential(credential)
     # TODO (Matthew Lee) ...
