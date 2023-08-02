@@ -9,7 +9,7 @@ GOOGLE_OAUTH_CLIENT_ID = 'google_oauth_client_id'  # string.
 # For checking whether the requests are sent from lemonsqueezy.
 # https://docs.lemonsqueezy.com/help/webhooks#signing-requests
 #
-# We also use this secret to generate customer token with AES-128 algorithm,
+# We also use this secret to generate user token with AES-128 algorithm,
 # so please make sure that this secret is a **16 characters length** string,
 # and do not contain any leading and trailing whitespace characters.
 LEMONSQUEEZY_SIGNING_SECRET = 'lemonsqueezy_signing_secret'  # string.

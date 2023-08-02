@@ -7,10 +7,10 @@ from werkzeug.exceptions import HTTPException
 
 from lemon import check_signing_secret, parse_event, dispatch_event
 from logger import logger
-from mongo.customers import Customer, setup_customers, upsert_customer
-from oauth import generate_customer_token, \
-    parse_customer_token_from_request, \
-    upsert_customer_from_google_oauth
+from mongo.users import User, setup_users, upsert_user
+from oauth import generate_user_token, \
+    parse_user_token_from_request, \
+    upsert_user_from_google_oauth
 
 app = Quart(__name__)
 app = cors(app, allow_origin='*')
@@ -19,7 +19,7 @@ app = cors(app, allow_origin='*')
 # https://pgjones.gitlab.io/quart/how_to_guides/startup_shutdown.html
 @app.before_serving
 async def before_serving():
-    await setup_customers()
+    await setup_users()
 
 
 # https://flask.palletsprojects.com/en/2.2.x/errorhandling/#generic-exception-handler
@@ -40,24 +40,24 @@ def handle_exception(e: HTTPException):
     return response
 
 
-# Register anonymous customer.
+# Register anonymous user.
 #
 # After register,
-# all requests' headers should contain `"Authorization": "Bearer CUSTOMER_TOKEN"`,
-# and the `CUSTOMER_TOKEN` value comes from `customer.token`.
-@app.post('/api/customer/register')
+# all requests' headers should contain `"Authorization": "Bearer USER_TOKEN"`,
+# and the `USER_TOKEN` value comes from `user.token`.
+@app.post('/api/user/register')
 async def register():
-    id = str(uuid4())
-    token = generate_customer_token(id)
-    customer = Customer(id=id, token=token)
-    await upsert_customer(customer)
-    return asdict(customer)
+    user_id = str(uuid4())
+    token = generate_user_token(user_id)
+    user = User(id=user_id, token=token)
+    await upsert_user(user)
+    return asdict(user)
 
 
 # {
 #   'credential': required; str.
 # }
-@app.post('/api/customer/oauth/google')
+@app.post('/api/user/oauth/google')
 async def google_oauth():
     body: dict = await request.get_json() or {}
 
@@ -68,13 +68,13 @@ async def google_oauth():
     if not credential:
         abort(400, '"credential" must not empty')
 
-    customer_token = await parse_customer_token_from_request()
-    customer = await upsert_customer_from_google_oauth(
+    user_token = await parse_user_token_from_request()
+    user = await upsert_user_from_google_oauth(
         credential=credential,
-        customer_token=customer_token,
+        user_token=user_token,
     )
 
-    return asdict(customer)
+    return asdict(user)
 
 
 # https://docs.lemonsqueezy.com/help/webhooks#webhook-requests

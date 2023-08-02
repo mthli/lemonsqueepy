@@ -1,11 +1,11 @@
 from dataclasses import dataclass, asdict
 from typing import Optional
 
-from mongo.db import customers
+from mongo.db import users
 
 
 @dataclass
-class Customer:
+class User:
     id: str = ''      # required; uuid, as primary key.
     token: str = ''   # required; should be unique too.
     email: str = ''   # optional; have to exist after oauth.
@@ -22,32 +22,32 @@ class Token:
 
 @dataclass
 class TokenInfo:
-    id: str = ''     # required; the customer id.
+    user_id: str = ''          # required.
     create_timestamp: int = 0  # required; in seconds.
 
 
 # MongoDB does not recreate the index if it already exists.
 # https://www.mongodb.com/community/forums/t/behavior-of-createindex-for-an-existing-index/2248/2
-async def setup_customers():
-    await customers.create_index('id', unique=True, background=True)
-    await customers.create_index('token', unique=True, background=True)
-    await customers.create_index('email', background=True)
+async def setup_users():
+    await users.create_index('id', unique=True, background=True)
+    await users.create_index('token', unique=True, background=True)
+    await users.create_index('email', background=True)
 
 
-async def find_customer_by_email(email: str) -> Optional[Customer]:
-    return await _find_customer_by_('email', email)
+async def find_user_by_email(email: str) -> Optional[User]:
+    return await _find_user_by_('email', email)
 
 
-async def find_customer_by_token(token: str) -> Optional[Customer]:
-    return await _find_customer_by_('token', token)
+async def find_user_by_token(token: str) -> Optional[User]:
+    return await _find_user_by_('token', token)
 
 
-async def _find_customer_by_(key: str, value: str) -> Optional[Customer]:
-    res: dict = await customers.find_one({key: value})
+async def _find_user_by_(key: str, value: str) -> Optional[User]:
+    res: dict = await users.find_one({key: value})
     if not res:
         return None
 
-    return Customer(
+    return User(
         id=res['id'],
         email=res['email'],
         token=res['token'],
@@ -56,9 +56,9 @@ async def _find_customer_by_(key: str, value: str) -> Optional[Customer]:
     )
 
 
-async def upsert_customer(customer: Customer):
-    await customers.update_one(
-        {'id': customer.id},
-        {'$set': asdict(customer)},
+async def upsert_user(user: User):
+    await users.update_one(
+        {'id': user.id},
+        {'$set': asdict(user)},
         upsert=True,
     )
