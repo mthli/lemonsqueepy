@@ -7,10 +7,10 @@ from mongo.db import customers
 @dataclass
 class Customer:
     id: str = ''      # required; uuid, as primary key.
-    email: str = ''   # required; should be unique too.
     token: str = ''   # required; should be unique too.
-    name: str = ''    # optional.
-    avatar: str = ''  # optional.
+    email: str = ''   # optional; have to exist after oauth.
+    name: str = ''    # optional; maybe exist even if oauth.
+    avatar: str = ''  # optional; maybe exist even if oauth.
 
 
 @dataclass
@@ -22,17 +22,16 @@ class Token:
 
 @dataclass
 class TokenInfo:
-    id: str = ''        # required; the customer id.
-    email: str = ''     # required; the customer email.
-    timestamp: int = 0  # required; the generate time in seconds.
+    id: str = ''     # required; the customer id.
+    create_timestamp: int = 0  # required; in seconds.
 
 
 # MongoDB does not recreate the index if it already exists.
 # https://www.mongodb.com/community/forums/t/behavior-of-createindex-for-an-existing-index/2248/2
 async def setup_customers():
     await customers.create_index('id', unique=True, background=True)
-    await customers.create_index('email', unique=True, background=True)
     await customers.create_index('token', unique=True, background=True)
+    await customers.create_index('email', background=True)
 
 
 async def find_customer_by_email(email: str) -> Optional[Customer]:

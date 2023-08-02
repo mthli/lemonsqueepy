@@ -25,6 +25,26 @@ _jwk_client = PyJWKClient(
 )
 
 
+# Looks like we don't need to decode the customer token for now.
+def generate_customer_token(id: str, secret='') -> str:
+    secret = secret.strip()
+    if not secret:
+        secret = get_key_from_rds(LEMONSQUEEZY_SIGNING_SECRET)
+    if len(secret) != 16:
+        abort(500, f'"{LEMONSQUEEZY_SIGNING_SECRET}" must be 16 characters length string')  # nopep8.
+
+    info = TokenInfo(id=id, create_timestamp=int(time.time()))
+    info = json.dumps(asdict(info)).encode()
+
+    cipher = AES.new(secret, AES.MODE_EAX)
+    ciphertext, tag = cipher.encrypt_and_digest(info)
+    nonce = cipher.nonce
+
+    token = Token(ciphertext=ciphertext, tag=tag, nonce=nonce)
+    token = json.dumps(asdict(token)).encode()
+    return b64encode(token)
+
+
 async def upsert_customer_from_google_oauth(credential: str) -> Customer:
     payload = _decode_google_oauth_credential(credential)
 
@@ -43,12 +63,12 @@ async def upsert_customer_from_google_oauth(credential: str) -> Customer:
         customer = Customer(
             id=id,
             email=email,
-            token=_generate_customer_token(id, email),
+            token=generate_customer_token(id),
             name=name,
             avatar=avatar,
         )
     else:
-        customer.token = _generate_customer_token(customer.id, email)  # renew.
+        customer.token = generate_customer_token(customer.id)  # renew.
         customer.name = name
         customer.avatar = avatar
 
@@ -67,21 +87,3 @@ def _decode_google_oauth_credential(credential: str) -> dict:
         audience=get_key_from_rds(GOOGLE_OAUTH_CLIENT_ID),
         issuer='https://accounts.google.com',
     )
-
-
-# Looks like we don't need to decode the customer token for now.
-def _generate_customer_token(id: str, email: str) -> str:
-    secret = get_key_from_rds(LEMONSQUEEZY_SIGNING_SECRET)
-    if len(secret) != 16:
-        abort(500, f'"{LEMONSQUEEZY_SIGNING_SECRET}" must be 16 characters length string')  # nopep8.
-
-    info = TokenInfo(id=id, email=email, timestamp=int(time.time()))
-    info = json.dumps(asdict(info)).encode()
-
-    cipher = AES.new(secret, AES.MODE_EAX)
-    ciphertext, tag = cipher.encrypt_and_digest(info)
-    nonce = cipher.nonce
-
-    token = Token(ciphertext=ciphertext, tag=tag, nonce=nonce)
-    token = json.dumps(asdict(token)).encode()
-    return b64encode(token)
