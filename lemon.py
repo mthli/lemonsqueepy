@@ -41,7 +41,7 @@ def check_signing_secret(headers: Headers, body: bytes):
     secret = get_key_from_rds(LEMONSQUEEZY_SIGNING_SECRET)
     digest = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
     if not hmac.compare_digest(digest, signature):
-        abort(400, f'invalid signature, signature={signature}')
+        abort(400, f'invalid "X-Signature", signature={signature}')
 
 
 # https://docs.lemonsqueezy.com/help/webhooks#webhook-requests
@@ -53,7 +53,7 @@ def parse_event(headers: Headers) -> Event:
     try:
         return Event[event.upper()]
     except Exception:
-        abort(400, 'invalid event, event={event}')
+        abort(400, f'invalid "X-Event-Name", event={event}')
 
 
 # https://docs.lemonsqueezy.com/help/webhooks#webhook-requests

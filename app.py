@@ -1,14 +1,16 @@
 import secrets
 
+from dataclasses import asdict
+
 from quart import Quart, abort, json, request
 from quart_auth import QuartAuth
 from quart_cors import cors
 from werkzeug.exceptions import HTTPException
 
+from google import upsert_customer_from_google_oauth
 from lemon import check_signing_secret, parse_event, dispatch_event
 from logger import logger
 from mongo.customers import setup_customers
-from oauth import decode_google_oauth_credential
 
 app = Quart(__name__)
 app = cors(app, allow_origin='*')
@@ -43,6 +45,24 @@ def handle_exception(e: HTTPException):
     return response
 
 
+# {
+#   'credential': '...',
+# }
+@app.post('/api/google/oauth')
+async def google_oauth():
+    body: dict = await request.get_json() or {}
+
+    credential = body.get('credential', '')
+    if not isinstance(credential, str):
+        abort(400, '"credential" must be string')
+    credential = credential.strip()
+    if not credential:
+        abort(400, '"credential" must not empty')
+
+    customer = await upsert_customer_from_google_oauth(credential)
+    return asdict(customer)
+
+
 # https://docs.lemonsqueezy.com/help/webhooks#webhook-requests
 @app.post('/api/lemonsqueezy/webhooks')
 async def lemonsqueezy_webhooks():
@@ -57,21 +77,3 @@ async def lemonsqueezy_webhooks():
     await dispatch_event(event, body)
 
     return {}  # 200.
-
-
-# {
-#   'credential': '...',
-# }
-@app.post('/api/google/oauth')
-async def on_google_oauth_success():
-    body: dict = await request.get_json() or {}
-
-    credential = body.get('credential', '')
-    if not isinstance(credential, str):
-        abort(400, '"credential" must be string')
-    credential = credential.strip()
-    if not credential:
-        abort(400, '"credential" must not empty')
-
-    decoded = decode_google_oauth_credential(credential)
-    # TODO (Matthew Lee) ...
