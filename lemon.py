@@ -9,7 +9,7 @@ from werkzeug.datastructures import Headers
 
 from mongo.licenses import insert_license
 from mongo.orders import insert_order
-from mongo.subscriptions import insert_subscription
+from mongo.subscriptions import insert_subscription, insert_subscription_payment
 from rds import get_key_from_rds, LEMONSQUEEZY_SIGNING_SECRET
 
 
@@ -60,6 +60,8 @@ def parse_event(headers: Headers) -> Event:
 async def dispatch_event(event: Event, body: dict):
     if str(event).startswith('order_'):
         await insert_order(body)
+    elif str(event).startswith('subscription_payment_'):
+        await insert_subscription_payment(body)
     elif str(event).startswith('subscription_'):
         await insert_subscription(body)
     elif str(event).startswith('license_'):

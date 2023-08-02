@@ -8,3 +8,4 @@ customers = _db['customers']  # collection.
 licenses = _db['licenses']  # collection.
 orders = _db['orders']  # collection.
 subscriptions = _db['subscriptions']  # collection.
+subscription_payments = _db['subscription_payments']  # collection.
