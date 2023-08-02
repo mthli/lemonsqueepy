@@ -4,7 +4,7 @@ from typing import Optional
 from mongo.db import users
 
 
-@dataclass
+@dataclass(kw_only=True)
 class User:
     id: str = ''      # required; uuid, as primary key.
     token: str = ''   # required; should be unique too.
@@ -13,14 +13,14 @@ class User:
     avatar: str = ''  # optional; maybe exist even if oauth.
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Token:
     ciphertext: str = ''  # required.
     tag: str = ''         # required.
     nonce: str = ''       # required.
 
 
-@dataclass
+@dataclass(kw_only=True)
 class TokenInfo:
     user_id: str = ''          # required.
     create_timestamp: int = 0  # required; in seconds.

@@ -4,8 +4,9 @@ import time
 import jwt
 import validators
 
-from base64 import b64encode
+from base64 import b64encode, b64decode
 from dataclasses import asdict
+from typing import Optional
 from uuid import uuid4
 
 from Crypto.Cipher import AES
@@ -28,8 +29,8 @@ _google_jwk_client = PyJWKClient(
 )
 
 
-# Looks like we don't need to decode the user token for now.
-def generate_user_token(user_id: str, secret: str = '') -> str:
+# https://onboardbase.com/blog/aes-encryption-decryption/
+def encrypt_user_token(user_id: str, secret: str = '') -> str:
     secret = secret.strip()
     if not secret:
         secret = get_key_from_rds(LEMONSQUEEZY_SIGNING_SECRET)
@@ -45,7 +46,21 @@ def generate_user_token(user_id: str, secret: str = '') -> str:
 
     token = Token(ciphertext=ciphertext, tag=tag, nonce=nonce)
     token = json.dumps(asdict(token)).encode()
-    return b64encode(token)
+    return b64encode(token).decode()
+
+
+# https://onboardbase.com/blog/aes-encryption-decryption/
+def decrypt_user_token(token: str, secret: str = '') -> Optional[TokenInfo]:
+    secret = secret.strip()
+    if not secret:
+        secret = get_key_from_rds(LEMONSQUEEZY_SIGNING_SECRET)
+    if len(secret) != 16:
+        abort(500, f'"{LEMONSQUEEZY_SIGNING_SECRET}" must be 16 characters length string')  # nopep8.
+
+    token: Token = Token(**json.loads(b64decode(token)))
+    cipher = AES.new(secret, AES.MODE_EAX, token.nonce)
+    info = cipher.decrypt_and_verify(token.ciphertext, token.tag)
+    return TokenInfo(**json.loads(info))
 
 
 async def parse_user_token_from_request(required: bool = True) -> str:
@@ -96,14 +111,14 @@ async def upsert_user_from_google_oauth(credential: str, user_token: str = '') -
         user_id = str(uuid4())
         user = User(
             id=user_id,
-            token=generate_user_token(user_id),
+            token=encrypt_user_token(user_id),
             email=email,
             name=name,
             avatar=avatar,
         )
     else:
         # FIXME (Matthew Lee) should renew user token here?
-        # user.token = generate_user_token(user.id)
+        # user.token = encrypt_user_token(user.id)
         user.email = email
         user.name = name
         user.avatar = avatar

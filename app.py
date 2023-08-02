@@ -1,14 +1,16 @@
+import json
+
 from dataclasses import asdict
 from uuid import uuid4
 
-from quart import Quart, abort, json, request
+from quart import Quart, abort, request
 from quart_cors import cors
 from werkzeug.exceptions import HTTPException
 
 from lemon import check_signing_secret, parse_event, dispatch_event
 from logger import logger
 from mongo.users import User, setup_users, upsert_user
-from oauth import generate_user_token, \
+from oauth import encrypt_user_token, \
     parse_user_token_from_request, \
     upsert_user_from_google_oauth
 
@@ -48,7 +50,7 @@ def handle_exception(e: HTTPException):
 @app.post('/api/user/register')
 async def register():
     user_id = str(uuid4())
-    token = generate_user_token(user_id)
+    token = encrypt_user_token(user_id)
     user = User(id=user_id, token=token)
     await upsert_user(user)
     return asdict(user)
