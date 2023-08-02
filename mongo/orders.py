@@ -1,6 +1,20 @@
 from mongo.db import orders
 
 
+# MongoDB does not recreate the index if it already exists.
+# https://www.mongodb.com/community/forums/t/behavior-of-createindex-for-an-existing-index/2248/2
+async def setup_orders():
+    await orders.create_index('meta.custom_data.user_id', background=True)    # nopep8; str.
+    await orders.create_index('data.attributes.store_id', background=True)    # nopep8; int.
+    await orders.create_index('data.attributes.identifier', background=True)  # nopep8; str.
+    await orders.create_index('data.attributes.user_email', background=True)  # nopep8; str.
+    await orders.create_index('data.attributes.status', background=True)      # nopep8; str.
+    await orders.create_index('data.attributes.first_order_item.product_id', background=True)  # nopep8; int.
+    await orders.create_index('data.attributes.first_order_item.variant_id', background=True)  # nopep8; int.
+    await orders.create_index('data.attributes.created_at', background=True)  # nopep8; datetime.
+    await orders.create_index('data.attributes.updated_at', background=True)  # nopep8; datetime.
+
+
 # https://docs.lemonsqueezy.com/api/orders#the-order-object
 # https://docs.lemonsqueezy.com/help/webhooks#example-payloads
 #
@@ -20,7 +34,6 @@ async def has_available_order(
     cursor = orders \
         .find({
             'meta.custom_data.user_id': user_id,
-            'data.type': 'orders',  # make sure is 'orders'.
             'data.attributes.store_id': store_id,
             'data.attributes.first_order_item.product_id': product_id,
             'data.attributes.first_order_item.variant_id': variant_id,

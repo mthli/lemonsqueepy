@@ -29,9 +29,9 @@ class TokenInfo:
 # MongoDB does not recreate the index if it already exists.
 # https://www.mongodb.com/community/forums/t/behavior-of-createindex-for-an-existing-index/2248/2
 async def setup_users():
-    await users.create_index('id', unique=True, background=True)
-    await users.create_index('token', unique=True, background=True)
-    await users.create_index('email', background=True)
+    await users.create_index('id', unique=True, background=True)     # str.
+    await users.create_index('token', unique=True, background=True)  # str.
+    await users.create_index('email', background=True)               # str.
 
 
 async def find_user_by_email(email: str) -> Optional[User]:

@@ -9,6 +9,8 @@ from werkzeug.exceptions import HTTPException
 
 from lemon import check_signing_secret, parse_event, dispatch_event
 from logger import logger
+from mongo.db import convert_fields_to_datetime_in_json
+from mongo.orders import setup_orders
 from mongo.users import User, setup_users, upsert_user
 from oauth import encrypt_user_token, \
     parse_user_token_from_request, \
@@ -21,6 +23,7 @@ app = cors(app, allow_origin='*')
 # https://pgjones.gitlab.io/quart/how_to_guides/startup_shutdown.html
 @app.before_serving
 async def before_serving():
+    await setup_orders()
     await setup_users()
 
 
@@ -90,6 +93,7 @@ async def lemonsqueezy_webhooks():
     check_signing_secret(request.headers, data)
 
     event = parse_event(request.headers)
+    convert_fields_to_datetime_in_json(body)
     await dispatch_event(event, body)
 
     return {}  # 200.
