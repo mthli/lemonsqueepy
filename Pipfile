@@ -14,6 +14,7 @@ motor = "*"
 validators = "*"
 pyjwt = "*"
 pycryptodome = "*"
+python-dateutil = "*"
 
 [dev-packages]
 autopep8 = "*"
