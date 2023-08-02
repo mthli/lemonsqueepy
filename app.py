@@ -48,8 +48,8 @@ def handle_exception(e: HTTPException):
 # Register anonymous user.
 #
 # After register,
-# all requests' headers should contain `"Authorization": "Bearer USER_TOKEN"`,
-# and the `USER_TOKEN` value comes from `user.token`.
+# all requests' headers should contain "Authorization": "Bearer USER_TOKEN",
+# and the USER_TOKEN value comes from `user.token`.
 @app.post('/api/user/register')
 async def register():
     user_id = str(uuid4())

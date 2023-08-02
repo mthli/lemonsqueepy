@@ -1,4 +1,16 @@
+from enum import unique
+
+from strenum import StrEnum
+
 from mongo.db import orders
+
+
+@unique
+class Status(StrEnum):
+    PENDING = 'pending'
+    PAID = 'paid'
+    FAILED = 'failed'
+    REFUNDED = 'refunded'
 
 
 # MongoDB does not recreate the index if it already exists.
@@ -24,6 +36,7 @@ async def insert_order(order: dict):
     await orders.insert_one(order)
 
 
+# Check whether the latest order status is "paid".
 async def has_available_order(
     user_id: str,
     store_id: int,
@@ -46,4 +59,4 @@ async def has_available_order(
     async for order in cursor:
         res.append(order)
 
-    return bool(res)
+    return res[0]['status'] == str(Status.PAID) if res else False
