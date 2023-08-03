@@ -11,6 +11,7 @@ from werkzeug.exceptions import HTTPException
 from lemon import check_signing_secret, parse_event, dispatch_event
 from logger import logger
 from mongo.db import convert_fields_to_datetime_in_json
+from mongo.licenses import setup_licenses
 from mongo.orders import setup_orders
 from mongo.subscriptions import setup_subscriptions, setup_subscription_payments
 from mongo.users import User, setup_users, upsert_user
@@ -28,6 +29,7 @@ async def before_serving():
     logger.info('setup collections before serving')
     await setup_users()
     await setup_orders()
+    await setup_licenses()
     await setup_subscriptions()
     await setup_subscription_payments()
 
