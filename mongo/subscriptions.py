@@ -26,17 +26,18 @@ class BillingReason(StrEnum):
 
 # FIXME (Matthew Lee) where is the `subscription_id` or something like that?
 async def setup_subscriptions():
-    await subscriptions.create_index('meta.event_name', background=True)              # nopep8; str.
-    await subscriptions.create_index('meta.custom_data.user_id', background=True)     # nopep8; str.
-    await subscriptions.create_index('data.attributes.store_id', background=True)     # nopep8; int.
-    await subscriptions.create_index('data.attributes.customer_id', background=True)  # nopep8; int.
-    await subscriptions.create_index('data.attributes.order_id', background=True)     # nopep8; int.
-    await subscriptions.create_index('data.attributes.product_id', background=True)   # nopep8; int.
-    await subscriptions.create_index('data.attributes.variant_id', background=True)   # nopep8; int.
-    await subscriptions.create_index('data.attributes.user_email', background=True)   # nopep8; str.
-    await subscriptions.create_index('data.attributes.status', background=True)       # nopep8; str.
-    await subscriptions.create_index('data.attributes.created_at', background=True)   # nopep8; datetime.
-    await subscriptions.create_index('data.attributes.updated_at', background=True)   # nopep8; datetime.
+    await subscriptions.create_index('meta.event_name', background=True)                # nopep8; str.
+    await subscriptions.create_index('meta.custom_data.user_id', background=True)       # nopep8; str.
+    await subscriptions.create_index('data.attributes.store_id', background=True)       # nopep8; int.
+    await subscriptions.create_index('data.attributes.customer_id', background=True)    # nopep8; int.
+    await subscriptions.create_index('data.attributes.order_id', background=True)       # nopep8; int.
+    await subscriptions.create_index('data.attributes.order_item_id', background=True)  # nopep8; int.
+    await subscriptions.create_index('data.attributes.product_id', background=True)     # nopep8; int.
+    await subscriptions.create_index('data.attributes.variant_id', background=True)     # nopep8; int.
+    await subscriptions.create_index('data.attributes.user_email', background=True)     # nopep8; str.
+    await subscriptions.create_index('data.attributes.status', background=True)         # nopep8; str.
+    await subscriptions.create_index('data.attributes.created_at', background=True)     # nopep8; datetime.
+    await subscriptions.create_index('data.attributes.updated_at', background=True)     # nopep8; datetime.
 
 
 async def setup_subscription_payments():

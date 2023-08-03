@@ -13,7 +13,6 @@ class Status(StrEnum):
     REFUNDED = 'refunded'
 
 
-# FIXME (Matthew Lee) where is the `order_id` or something like that?
 async def setup_orders():
     await orders.create_index('meta.event_name', background=True)              # nopep8; str.
     await orders.create_index('meta.custom_data.user_id', background=True)     # nopep8; str.
@@ -22,6 +21,8 @@ async def setup_orders():
     await orders.create_index('data.attributes.identifier', background=True)   # nopep8; str.
     await orders.create_index('data.attributes.user_email', background=True)   # nopep8; str.
     await orders.create_index('data.attributes.status', background=True)       # nopep8; str.
+    await orders.create_index('data.attributes.first_order_item.id', background=True)          # nopep8; int, as the `order_item_id`.
+    await orders.create_index('data.attributes.first_order_item.order_id', background=True)    # nopep8; int, as the `order_id`.
     await orders.create_index('data.attributes.first_order_item.product_id', background=True)  # nopep8; int.
     await orders.create_index('data.attributes.first_order_item.variant_id', background=True)  # nopep8; int.
     await orders.create_index('data.attributes.created_at', background=True)   # nopep8; datetime.
