@@ -14,7 +14,8 @@ GOOGLE_OAUTH_CLIENT_IDS = 'google_oauth_client_ids'  # set.
 #
 # We also use this secret to generate user token with AES-128 algorithm,
 # so please make sure that this secret is a **16 characters length** string,
-# and do not contain any leading and trailing whitespace characters.
+# and do not contain any leading and trailing whitespace characters,
+# for example "0123456789abcdef" (don't use it, just a example, haha).
 LEMONSQUEEZY_SIGNING_SECRET = 'lemonsqueezy_signing_secret'  # string.
 
 # Default host and port.

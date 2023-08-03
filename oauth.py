@@ -42,11 +42,16 @@ def generate_user_token(user_id: str, timestamp: int, secret: str = '') -> str:
     info = TokenInfo(user_id=user_id, generate_timestamp=timestamp)
     info = json.dumps(asdict(info)).encode()
 
-    cipher = AES.new(secret, AES.MODE_EAX)
-    ciphertext, tag = cipher.encrypt_and_digest(info)
-    nonce = cipher.nonce
+    cipher = AES.new(secret.encode(), AES.MODE_EAX)
+    ciphertext, tag = cipher.encrypt_and_digest(info)  # bytes.
+    nonce: bytes = cipher.nonce
 
-    token = Token(ciphertext=ciphertext, tag=tag, nonce=nonce)
+    token = Token(
+        ciphertext=b64encode(ciphertext).decode(),
+        tag=b64encode(tag).decode(),
+        nonce=b64encode(nonce).decode(),
+    )
+
     token = json.dumps(asdict(token)).encode()
     return b64encode(token).decode()
 
@@ -60,8 +65,8 @@ def decrypt_user_token(token: str, secret: str = '') -> Optional[TokenInfo]:
         abort(500, f'"{LEMONSQUEEZY_SIGNING_SECRET}" must be 16 characters length string')  # nopep8.
 
     token: Token = Token(**json.loads(b64decode(token)))
-    cipher = AES.new(secret, AES.MODE_EAX, token.nonce)
-    info = cipher.decrypt_and_verify(token.ciphertext, token.tag)
+    cipher = AES.new(secret.encode(), AES.MODE_EAX, b64decode(token.nonce))
+    info = cipher.decrypt_and_verify(b64decode(token.ciphertext), b64decode(token.tag))  # nopep8.
     return TokenInfo(**json.loads(info))
 
 
