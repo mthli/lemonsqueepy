@@ -1,4 +1,5 @@
 from enum import unique
+from typing import Optional
 
 from strenum import StrEnum
 
@@ -67,3 +68,48 @@ async def insert_subscription(subscription: dict):
 # plus some `meta` and the usual `relationships` and `links`.
 async def insert_subscription_payment(payment: dict):
     await subscription_payments.insert_one(payment)
+
+
+async def find_latest_subscription(
+    user_id: str,
+    store_id: int,
+    product_id: int,
+    variant_id: int = 1,  # as the "default" variant.
+    test_mode: bool = False,
+) -> Optional[dict]:
+    cursor = subscriptions \
+        .find({
+            'meta.custom_data.user_id': user_id,
+            'data.attributes.store_id': store_id,
+            'data.attributes.product_id': product_id,
+            'data.attributes.variant_id': variant_id,
+            'data.attributes.test_mode': test_mode,
+        }) \
+        .sort('data.attributes.updated_at', -1) \
+        .limit(1)
+
+    res: list[dict] = []
+    async for order in cursor:
+        res.append(order)
+
+    return res[0] if res else None
+
+
+async def has_available_subscription(
+    user_id: str,
+    store_id: int,
+    product_id: int,
+    variant_id: int = 1,  # as the "default" variant.
+    test_mode: bool = False,
+) -> bool:
+    latest = await find_latest_subscription(
+        user_id=user_id,
+        store_id=store_id,
+        product_id=product_id,
+        variant_id=variant_id,
+        test_mode=test_mode,
+    )
+
+    # Check whether the latest subscription status is "on_trial" or "active".
+    statuses = [str(Status.ON_TRIAL), str(Status.ACTIVE)]
+    return latest['status'] in statuses if latest else False
