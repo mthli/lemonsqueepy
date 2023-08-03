@@ -33,12 +33,15 @@ class Event(StrEnum):
 
 
 # https://docs.lemonsqueezy.com/help/webhooks#signing-requests
-def check_signing_secret(headers: Headers, body: bytes):
+def check_signing_secret(headers: Headers, body: bytes, secret: str = ''):
     signature = headers.get(key='X-Signature', default='', type=str)
     if not signature:
         abort(400, f'"X-Signature" not exists')
 
-    secret = get_str_from_rds(LEMONSQUEEZY_SIGNING_SECRET)
+    secret = secret.strip()
+    if not secret:
+        secret = get_str_from_rds(LEMONSQUEEZY_SIGNING_SECRET)
+
     digest = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
     if not hmac.compare_digest(digest, signature):
         abort(400, f'invalid "X-Signature", signature={signature}')

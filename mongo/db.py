@@ -24,14 +24,12 @@ def convert_fields_to_datetime_in_json(data: Any | None):
     if isinstance(data, list):
         for item in data:
             convert_fields_to_datetime_in_json(item)
-    elif not isinstance(data, dict):
-        return
-
-    for key, value in data.items():
-        if not isinstance(value, str):
-            convert_fields_to_datetime_in_json(value)
-            continue
-        try:
-            data[key] = parser.isoparse(value)
-        except Exception:
-            pass  # DO NOTHING.
+    elif isinstance(data, dict):
+        for key, value in data.items():
+            if not isinstance(value, str):
+                convert_fields_to_datetime_in_json(value)
+                continue
+            try:
+                data[key] = parser.isoparse(value)
+            except Exception:
+                pass  # DO NOTHING.
