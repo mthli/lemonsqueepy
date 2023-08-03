@@ -118,7 +118,7 @@ async def upsert_user_from_google_oauth(credential: str, user_token: str = '') -
     avatar = payload.get('picture', '').strip()
     timestamp = int(time.time())
 
-    user: User | None = None
+    user: Optional[User] = None
     if user_token:  # first priority.
         user = find_user_by_token(user_token)
     if not user:  # second priority.

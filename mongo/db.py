@@ -20,7 +20,7 @@ subscription_payments = _db['subscription_payments']  # collection.
 #
 # Same as:
 # https://pymongo.readthedocs.io/en/stable/examples/datetimes.html
-def convert_fields_to_datetime_in_json(data: Any | None):
+def convert_fields_to_datetime_in_json(data: Any):
     if isinstance(data, list):
         for item in data:
             convert_fields_to_datetime_in_json(item)

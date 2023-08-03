@@ -6,7 +6,7 @@ from quart import abort
 from mongo.db import users
 
 
-@dataclass(kw_only=True)
+@dataclass
 class User:
     id: str = ''      # required; uuid, as primary key.
     token: str = ''   # required; should be unique too.
@@ -17,14 +17,14 @@ class User:
     update_timestamp: int = 0  # required; in seconds.
 
 
-@dataclass(kw_only=True)
+@dataclass
 class Token:
     ciphertext: str = ''  # required.
     tag: str = ''         # required.
     nonce: str = ''       # required.
 
 
-@dataclass(kw_only=True)
+@dataclass
 class TokenInfo:
     user_id: str = ''            # required.
     generate_timestamp: int = 0  # required; in seconds.
