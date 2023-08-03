@@ -57,7 +57,19 @@ pipenv install
 pipenv install --dev
 ```
 
-TODO
+Before run this project:
+
+- TODO
+- Put `./lemon.mthli.com.conf` to `/etc/nginx/conf.d/` directory.
+- Execute `sudo certbot --nginx -d lemon.mthli.com` to generate certificates, or
+- Execute `sudo certbot renew` to avoid certificates expired after 90 days.
+
+Then just execute commands as follow:
+
+```bash
+# Make sure you are not in pipenv shell.
+pm2 start ./pm2.json
+```
 
 ## License
 
