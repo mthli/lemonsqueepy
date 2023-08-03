@@ -59,7 +59,8 @@ pipenv install --dev
 
 Before run this project:
 
-- TODO
+- Add `google_oauth_client_ids` defined in `./rds.py` with `redis-cli`
+- Set `lemonsqueezy_signing_secret` defined in `./rds.py` with `redis-cli`
 - Put `./lemon.mthli.com.conf` to `/etc/nginx/conf.d/` directory.
 - Execute `sudo certbot --nginx -d lemon.mthli.com` to generate certificates, or
 - Execute `sudo certbot renew` to avoid certificates expired after 90 days.
