@@ -1,6 +1,8 @@
 from dataclasses import dataclass, asdict
 from typing import Optional
 
+from quart import abort
+
 from mongo.db import users
 
 
@@ -11,8 +13,8 @@ class User:
     email: str = ''   # optional; have to exist after oauth.
     name: str = ''    # optional; maybe exist even if oauth.
     avatar: str = ''  # optional; maybe exist even if oauth.
-    create_timestamp: int = 0  # required.
-    update_timestamp: int = 0  # required.
+    create_timestamp: int = 0  # required; in seconds.
+    update_timestamp: int = 0  # required; in seconds.
 
 
 @dataclass(kw_only=True)
@@ -63,6 +65,12 @@ async def _find_user_by_(key: str, value: str) -> Optional[User]:
 
 
 async def upsert_user(user: User):
+    if not user.id \
+            or not user.token \
+            or not user.create_timestamp \
+            or not user.update_timestamp:
+        abort(500, 'invalid user object')
+
     await users.update_one(
         {'id': user.id},
         {'$set': asdict(user)},
