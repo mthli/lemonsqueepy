@@ -11,6 +11,7 @@ from lemon import check_signing_secret, parse_event, dispatch_event
 from logger import logger
 from mongo.db import convert_fields_to_datetime_in_json
 from mongo.orders import setup_orders
+from mongo.subscriptions import setup_subscriptions, setup_subscription_payments
 from mongo.users import User, setup_users, upsert_user
 from oauth import encrypt_user_token, \
     parse_user_token_from_request, \
@@ -23,8 +24,11 @@ app = cors(app, allow_origin='*')
 # https://pgjones.gitlab.io/quart/how_to_guides/startup_shutdown.html
 @app.before_serving
 async def before_serving():
-    await setup_orders()
+    logger.info('setup collections before serving')
     await setup_users()
+    await setup_orders()
+    await setup_subscriptions()
+    await setup_subscription_payments()
 
 
 # https://flask.palletsprojects.com/en/2.2.x/errorhandling/#generic-exception-handler
@@ -48,8 +52,8 @@ def handle_exception(e: HTTPException):
 # Register anonymous user.
 #
 # After register,
-# all requests' headers should contain "Authorization": "Bearer USER_TOKEN",
-# and the USER_TOKEN value comes from `user.token`.
+# all requests' headers should contain `"Authorization": "Bearer USER_TOKEN"`,
+# and the `USER_TOKEN` value comes from `user.token`.
 @app.post('/api/user/register')
 async def register():
     user_id = str(uuid4())

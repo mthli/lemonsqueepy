@@ -13,18 +13,19 @@ class Status(StrEnum):
     REFUNDED = 'refunded'
 
 
-# MongoDB does not recreate the index if it already exists.
-# https://www.mongodb.com/community/forums/t/behavior-of-createindex-for-an-existing-index/2248/2
+# FIXME (Matthew Lee) where is the `order_id` or something like that?
 async def setup_orders():
-    await orders.create_index('meta.custom_data.user_id', background=True)    # nopep8; str.
-    await orders.create_index('data.attributes.store_id', background=True)    # nopep8; int.
-    await orders.create_index('data.attributes.identifier', background=True)  # nopep8; str.
-    await orders.create_index('data.attributes.user_email', background=True)  # nopep8; str.
-    await orders.create_index('data.attributes.status', background=True)      # nopep8; str.
+    await orders.create_index('meta.event_name', background=True)              # nopep8; str.
+    await orders.create_index('meta.custom_data.user_id', background=True)     # nopep8; str.
+    await orders.create_index('data.attributes.store_id', background=True)     # nopep8; int.
+    await orders.create_index('data.attributes.customer_id', background=True)  # nopep8; int.
+    await orders.create_index('data.attributes.identifier', background=True)   # nopep8; str.
+    await orders.create_index('data.attributes.user_email', background=True)   # nopep8; str.
+    await orders.create_index('data.attributes.status', background=True)       # nopep8; str.
     await orders.create_index('data.attributes.first_order_item.product_id', background=True)  # nopep8; int.
     await orders.create_index('data.attributes.first_order_item.variant_id', background=True)  # nopep8; int.
-    await orders.create_index('data.attributes.created_at', background=True)  # nopep8; datetime.
-    await orders.create_index('data.attributes.updated_at', background=True)  # nopep8; datetime.
+    await orders.create_index('data.attributes.created_at', background=True)   # nopep8; datetime.
+    await orders.create_index('data.attributes.updated_at', background=True)   # nopep8; datetime.
 
 
 # https://docs.lemonsqueezy.com/api/orders#the-order-object
