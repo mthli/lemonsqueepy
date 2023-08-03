@@ -5,12 +5,11 @@ name = "pypi"
 
 [packages]
 redis = "*"
-ipython = "*"
-strenum = "*"
-quart = "*"
-hypercorn = "*"
-quart-cors = "*"
 motor = "*"
+quart = "*"
+quart-cors = "*"
+hypercorn = "*"
+strenum = "*"
 validators = "*"
 pyjwt = "*"
 pycryptodome = "*"
@@ -18,6 +17,8 @@ python-dateutil = "*"
 
 [dev-packages]
 autopep8 = "*"
+ipython = "*"
+pytest = "*"
 
 [requires]
 python_version = "3.10"
