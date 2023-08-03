@@ -18,7 +18,9 @@ from mongo.users import User, Token, TokenInfo, \
     find_user_by_email, \
     find_user_by_token, \
     upsert_user
-from rds import get_key_from_rds, GOOGLE_OAUTH_CLIENT_ID, LEMONSQUEEZY_SIGNING_SECRET
+from rds import rds, get_str_from_rds, \
+    GOOGLE_OAUTH_CLIENT_IDS, \
+    LEMONSQUEEZY_SIGNING_SECRET
 
 # FIXME (Matthew Lee) not support asyncio for now.
 _google_jwk_client = PyJWKClient(
@@ -33,7 +35,7 @@ _google_jwk_client = PyJWKClient(
 def generate_user_token(user_id: str, timestamp: int, secret: str = '') -> str:
     secret = secret.strip()
     if not secret:
-        secret = get_key_from_rds(LEMONSQUEEZY_SIGNING_SECRET)
+        secret = get_str_from_rds(LEMONSQUEEZY_SIGNING_SECRET)
     if len(secret) != 16:
         abort(500, f'"{LEMONSQUEEZY_SIGNING_SECRET}" must be 16 characters length string')  # nopep8.
 
@@ -53,7 +55,7 @@ def generate_user_token(user_id: str, timestamp: int, secret: str = '') -> str:
 def decrypt_user_token(token: str, secret: str = '') -> Optional[TokenInfo]:
     secret = secret.strip()
     if not secret:
-        secret = get_key_from_rds(LEMONSQUEEZY_SIGNING_SECRET)
+        secret = get_str_from_rds(LEMONSQUEEZY_SIGNING_SECRET)
     if len(secret) != 16:
         abort(500, f'"{LEMONSQUEEZY_SIGNING_SECRET}" must be 16 characters length string')  # nopep8.
 
@@ -90,13 +92,22 @@ async def parse_user_token_from_request(required: bool = True) -> str:
 
 
 async def upsert_user_from_google_oauth(credential: str, user_token: str = '') -> User:
-    payload = _decode_google_oauth_credential(credential)
+    payload: dict = {}
+
+    client_ids = rds.smembers(GOOGLE_OAUTH_CLIENT_IDS)
+    for cid in client_ids:
+        try:
+            payload = _decode_google_oauth_credential(credential, cid.decode())
+        except Exception:
+            pass  # DO NOTHING.
+    if not payload:
+        abort(403, f'invalid credential "aud", credential={credential}')
 
     email = payload.get('email', '').strip()
     if not email:
-        abort(400, '"email" not exists')
+        abort(403, '"email" not exists')
     if isinstance(validators.email(email), ValidationFailure):
-        abort(400, f'invalid "email", email={email}')
+        abort(403, f'invalid "email", email={email}')
 
     name = payload.get('name', '').strip()
     avatar = payload.get('picture', '').strip()
@@ -133,12 +144,12 @@ async def upsert_user_from_google_oauth(credential: str, user_token: str = '') -
 
 # https://developers.google.com/identity/gsi/web/guides/verify-google-id-token
 # https://pyjwt.readthedocs.io/en/stable/usage.html#retrieve-rsa-signing-keys-from-a-jwks-endpoint
-def _decode_google_oauth_credential(credential: str) -> dict:
+def _decode_google_oauth_credential(credential: str, client_id: str) -> dict:
     signing_key = _google_jwk_client.get_signing_key_from_jwt(credential)
     return jwt.decode(
         jwt=credential,
         key=signing_key.key,
         algorithms=['RS256'],
-        audience=get_key_from_rds(GOOGLE_OAUTH_CLIENT_ID),
+        audience=client_id,
         issuer='https://accounts.google.com',
     )
