@@ -1,4 +1,17 @@
+from enum import unique
+from typing import Optional
+
+from strenum import StrEnum
+
 from mongo.db import licenses
+
+
+@unique
+class Status(StrEnum):
+    INACTIVE = 'inactive'
+    ACTIVE = 'active'
+    EXPIRED = 'expired'
+    DISABLED = 'disabled'
 
 
 async def setup_licenses():
@@ -24,3 +37,47 @@ async def setup_licenses():
 # plus some `meta` and the usual `relationships` and `links`.
 async def insert_license(license: dict):
     await licenses.insert_one(license)
+
+
+async def find_latest_license(
+    user_id: str,
+    store_id: int,
+    product_id: int,
+    key: str,
+    test_mode: bool = False,
+) -> Optional[dict]:
+    cursor = licenses \
+        .find({
+            'meta.custom_data.user_id': user_id,
+            'data.attributes.store_id': store_id,
+            'data.attributes.product_id': product_id,
+            'data.attributes.key': key,
+            'data.attributes.test_mode': test_mode,
+        }) \
+        .sort('data.attributes.updated_at', -1) \
+        .limit(1)
+
+    res: list[dict] = []
+    async for order in cursor:
+        res.append(order)
+
+    return res[0] if res else None
+
+
+async def has_available_license(
+    user_id: str,
+    store_id: int,
+    product_id: int,
+    key: str,
+    test_mode: bool = False,
+) -> bool:
+    latest = await find_latest_license(
+        user_id=user_id,
+        store_id=store_id,
+        product_id=product_id,
+        key=key,
+        test_mode=test_mode,
+    )
+
+    # Check whether the latest license status is "active".
+    return latest['status'] == str(Status.ACTIVE) if latest else False
