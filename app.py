@@ -15,9 +15,7 @@ from mongo.licenses import setup_licenses
 from mongo.orders import setup_orders
 from mongo.subscriptions import setup_subscriptions, setup_subscription_payments
 from mongo.users import User, setup_users, upsert_user
-from oauth import generate_user_token, \
-    parse_user_token_from_request, \
-    upsert_user_from_google_oauth
+from oauth import generate_user_token, upsert_user_from_google_oauth
 
 app = Quart(__name__)
 app = cors(app, allow_origin='*')
@@ -76,22 +74,15 @@ async def register():
 
 # {
 #   'credential': required; str.
+#   'user_token': optional; str.
 # }
 @app.post('/api/user/oauth/google')
 async def google_oauth():
     body: dict = await request.get_json() or {}
 
-    credential = body.get('credential', '')
-    if not isinstance(credential, str):
-        abort(400, '"credential" must be string')
-    credential = credential.strip()
-    if not credential:
-        abort(400, '"credential" must not empty')
-
-    user_token = await parse_user_token_from_request()
     user = await upsert_user_from_google_oauth(
-        credential=credential,
-        user_token=user_token,
+        credential=_parse_str_from_body(body, 'credential'),
+        user_token=_parse_str_from_body(body, 'user_token', False),
     )
 
     return asdict(user)
@@ -112,3 +103,19 @@ async def lemonsqueezy_webhooks():
     await dispatch_event(event, body)
 
     return {}  # 200.
+
+
+def _parse_str_from_body(body: dict, key: str, required: bool = True) -> str:
+    value = body.get(key, '')
+    if not isinstance(value, str):
+        if required:
+            abort(400, f'"{key}" must be string')
+        return ''
+
+    value = value.strip()
+    if not value:
+        if required:
+            abort(400, f'"{key}" must not empty')
+        return ''
+
+    return value

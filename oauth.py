@@ -11,7 +11,7 @@ from uuid import uuid4
 
 from Crypto.Cipher import AES
 from jwt import PyJWKClient
-from quart import abort, request
+from quart import abort
 from validators import ValidationFailure
 
 from mongo.users import User, Token, TokenInfo, \
@@ -68,32 +68,6 @@ def decrypt_user_token(token: str, secret: str = '') -> Optional[TokenInfo]:
     cipher = AES.new(secret.encode(), AES.MODE_EAX, b64decode(token.nonce))
     info = cipher.decrypt_and_verify(b64decode(token.ciphertext), b64decode(token.tag))  # nopep8.
     return TokenInfo(**json.loads(info))
-
-
-async def parse_user_token_from_request(required: bool = True) -> str:
-    auth = request.authorization
-    if not auth:
-        if required:
-            abort(400, '"Authorization" not exists')
-        return ''
-
-    if auth.type != 'Bearer':
-        if required:
-            abort(400, f'"Authorization" type must be "Bearer", type={auth.type}')  # nopep8.
-        return ''
-
-    token = (auth.token if auth.token else '').strip()
-    if not token:
-        if required:
-            abort(400, '"Authorization" token must not empty')
-        return ''
-
-    if required:
-        user = await find_user_by_token(token)
-        if not user:
-            abort(403, f'invalid "Authorization", token={token}')
-
-    return token
 
 
 async def upsert_user_from_google_oauth(credential: str, user_token: str = '') -> User:
