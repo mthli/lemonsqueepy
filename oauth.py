@@ -30,14 +30,14 @@ _google_jwk_client = PyJWKClient(
 
 
 # https://onboardbase.com/blog/aes-encryption-decryption/
-def encrypt_user_token(user_id: str, secret: str = '') -> str:
+def generate_user_token(user_id: str, timestamp: int, secret: str = '') -> str:
     secret = secret.strip()
     if not secret:
         secret = get_key_from_rds(LEMONSQUEEZY_SIGNING_SECRET)
     if len(secret) != 16:
         abort(500, f'"{LEMONSQUEEZY_SIGNING_SECRET}" must be 16 characters length string')  # nopep8.
 
-    info = TokenInfo(user_id=user_id, create_timestamp=int(time.time()))
+    info = TokenInfo(user_id=user_id, generate_timestamp=timestamp)
     info = json.dumps(asdict(info)).encode()
 
     cipher = AES.new(secret, AES.MODE_EAX)
@@ -100,6 +100,7 @@ async def upsert_user_from_google_oauth(credential: str, user_token: str = '') -
 
     name = payload.get('name', '').strip()
     avatar = payload.get('picture', '').strip()
+    timestamp = int(time.time())
 
     user: User | None = None
     if user_token:  # first priority.
@@ -111,17 +112,20 @@ async def upsert_user_from_google_oauth(credential: str, user_token: str = '') -
         user_id = str(uuid4())
         user = User(
             id=user_id,
-            token=encrypt_user_token(user_id),
+            token=generate_user_token(user_id, timestamp),
             email=email,
             name=name,
             avatar=avatar,
+            create_timestamp=timestamp,
+            update_timestamp=timestamp,
         )
     else:
         # FIXME (Matthew Lee) should renew user token here?
-        # user.token = encrypt_user_token(user.id)
+        # user.token = generate_user_token(user.id, timestamp)
         user.email = email
         user.name = name
         user.avatar = avatar
+        user.update_timestamp = timestamp
 
     await upsert_user(user)
     return user

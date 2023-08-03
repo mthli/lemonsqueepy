@@ -11,6 +11,8 @@ class User:
     email: str = ''   # optional; have to exist after oauth.
     name: str = ''    # optional; maybe exist even if oauth.
     avatar: str = ''  # optional; maybe exist even if oauth.
+    create_timestamp: int = 0  # required.
+    update_timestamp: int = 0  # required.
 
 
 @dataclass(kw_only=True)
@@ -22,8 +24,8 @@ class Token:
 
 @dataclass(kw_only=True)
 class TokenInfo:
-    user_id: str = ''          # required.
-    create_timestamp: int = 0  # required; in seconds.
+    user_id: str = ''            # required.
+    generate_timestamp: int = 0  # required; in seconds.
 
 
 # MongoDB does not recreate the index if it already exists.
@@ -32,6 +34,8 @@ async def setup_users():
     await users.create_index('id', unique=True, background=True)     # str.
     await users.create_index('token', unique=True, background=True)  # str.
     await users.create_index('email', background=True)               # str.
+    await users.create_index('create_timestamp', background=True)    # int.
+    await users.create_index('update_timestamp', background=True)    # int.
 
 
 async def find_user_by_email(email: str) -> Optional[User]:
@@ -53,6 +57,8 @@ async def _find_user_by_(key: str, value: str) -> Optional[User]:
         token=res['token'],
         name=res['name'],
         avatar=res['avatar'],
+        create_timestamp=res['create_timestamp'],
+        update_timestamp=res['update_timestamp'],
     )
 
 

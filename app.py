@@ -1,4 +1,5 @@
 import json
+import time
 
 from dataclasses import asdict
 from uuid import uuid4
@@ -13,7 +14,7 @@ from mongo.db import convert_fields_to_datetime_in_json
 from mongo.orders import setup_orders
 from mongo.subscriptions import setup_subscriptions, setup_subscription_payments
 from mongo.users import User, setup_users, upsert_user
-from oauth import encrypt_user_token, \
+from oauth import generate_user_token, \
     parse_user_token_from_request, \
     upsert_user_from_google_oauth
 
@@ -57,8 +58,16 @@ def handle_exception(e: HTTPException):
 @app.post('/api/user/register')
 async def register():
     user_id = str(uuid4())
-    token = encrypt_user_token(user_id)
-    user = User(id=user_id, token=token)
+    timestamp = int(time.time())
+    token = generate_user_token(user_id, timestamp)
+
+    user = User(
+        id=user_id,
+        token=token,
+        create_timestamp=timestamp,
+        update_timestamp=timestamp,
+    )
+
     await upsert_user(user)
     return asdict(user)
 
