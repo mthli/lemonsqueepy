@@ -56,7 +56,6 @@ def generate_user_token(user_id: str, timestamp: int, secret: str = '') -> str:
     return b64encode(token).decode()
 
 
-# TODO (Matthew Lee) add redis cache.
 # https://onboardbase.com/blog/aes-encryption-decryption/
 def decrypt_user_token(token: str, secret: str = '') -> Optional[TokenInfo]:
     secret = secret.strip()

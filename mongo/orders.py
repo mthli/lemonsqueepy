@@ -1,6 +1,7 @@
 from enum import unique
 from typing import Optional
 
+from async_lru import alru_cache
 from strenum import StrEnum
 
 from mongo.db import orders, convert_datetime_to_isoformat_with_z
@@ -42,8 +43,10 @@ async def setup_orders():
 # plus some `meta` and the usual `relationships` and `links`.
 async def insert_order(order: dict):
     await orders.insert_one(order)
+    find_latest_order.cache_clear()
 
 
+@alru_cache()
 async def find_latest_order(
     user_id: str,
     store_id: str,

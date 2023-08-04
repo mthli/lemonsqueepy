@@ -1,6 +1,7 @@
 from enum import unique
 from typing import Optional
 
+from async_lru import alru_cache
 from strenum import StrEnum
 
 from mongo.db import orders, \
@@ -68,6 +69,7 @@ async def setup_subscription_payments():
 # plus some `meta` and the usual `relationships` and `links`.
 async def insert_subscription(subscription: dict):
     await subscriptions.insert_one(subscription)
+    find_latest_subscription.cache_clear()
 
 
 # https://docs.lemonsqueezy.com/api/subscription-invoices#the-subscription-invoice-object
@@ -79,6 +81,7 @@ async def insert_subscription_payment(payment: dict):
     await subscription_payments.insert_one(payment)
 
 
+@alru_cache()
 async def find_latest_subscription(
     user_id: str,
     store_id: str,

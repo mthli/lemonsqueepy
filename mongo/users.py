@@ -1,6 +1,7 @@
 from dataclasses import dataclass, asdict
 from typing import Optional
 
+from async_lru import alru_cache
 from quart import abort
 
 from mongo.db import users
@@ -48,6 +49,7 @@ async def find_user_by_token(token: str) -> Optional[User]:
     return await _find_user_by_('token', token)
 
 
+@alru_cache()
 async def _find_user_by_(key: str, value: str) -> Optional[User]:
     res: dict = await users.find_one({key: value})
     if not res:
@@ -76,3 +78,5 @@ async def upsert_user(user: User):
         {'$set': asdict(user)},
         upsert=True,
     )
+
+    _find_user_by_.cache_clear()

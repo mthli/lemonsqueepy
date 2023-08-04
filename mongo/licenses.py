@@ -1,6 +1,7 @@
 from enum import unique
 from typing import Optional
 
+from async_lru import alru_cache
 from strenum import StrEnum
 
 from mongo.db import licenses, orders, \
@@ -42,8 +43,10 @@ async def setup_licenses():
 # plus some `meta` and the usual `relationships` and `links`.
 async def insert_license(license: dict):
     await licenses.insert_one(license)
+    find_latest_license.cache_clear()
 
 
+@alru_cache()
 async def find_latest_license(
     user_id: str,
     store_id: str,
