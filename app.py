@@ -13,9 +13,13 @@ from logger import logger
 from mongo.db import convert_fields_to_datetime_in_json
 from mongo.licenses import setup_licenses
 from mongo.orders import setup_orders, has_available_order
-from mongo.subscriptions import setup_subscriptions, setup_subscription_payments
+from mongo.subscriptions import setup_subscriptions, \
+    setup_subscription_payments, \
+    has_available_subscription
 from mongo.users import User, setup_users, upsert_user
-from oauth import generate_user_token, decrypt_user_token, upsert_user_from_google_oauth
+from oauth import generate_user_token, \
+    decrypt_user_token, \
+    upsert_user_from_google_oauth
 
 app = Quart(__name__)
 app = cors(app, allow_origin='*')
@@ -130,6 +134,43 @@ async def check_available_order():
         abort(400, '"variant_id" must > 0')
 
     res = await has_available_order(
+        user_id=decrypt_user_token(user_token).user_id,
+        store_id=store_id,
+        product_id=product_id,
+        variant_id=variant_id,
+        test_mode=test_mode,
+    )
+
+    return {
+        'available': res,
+    }
+
+
+# ?user_token=str  required.
+# &store_id=int    required; must > 0.
+# &product_id=int  required; must > 0.
+# &variant_id=int  optional; must > 0, default is 1.
+# &test_mode=bool  optional; default is false.
+#
+# TODO (Matthew Lee) add redis cache.
+@app.get('/api/subscriptions/latest/check')
+async def check_available_subscription():
+    user_token = _parse_str_from_dict(request.args, 'user_token')
+    test_mode = request.args.get('test_mode', False, bool)
+
+    store_id = request.args.get('store_id', 0, int)
+    if store_id <= 0:
+        abort(400, '"store_id" must > 0')
+
+    product_id = request.args.get('product_id', 0, int)
+    if product_id <= 0:
+        abort(400, '"product_id" must > 0')
+
+    variant_id = request.args.get('variant_id', 1, int)
+    if variant_id <= 0:
+        abort(400, '"variant_id" must > 0')
+
+    res = await has_available_subscription(
         user_id=decrypt_user_token(user_token).user_id,
         store_id=store_id,
         product_id=product_id,
