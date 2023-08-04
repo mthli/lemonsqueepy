@@ -18,11 +18,23 @@ subscription_payments = _db['subscription_payments']  # collection.
 # FIXME (Matthew Lee)
 # https://lemonsqueezy.nolt.io/234
 #
-# The `data.id` is str instead of int in origin webhooks request,
-# don't know why, but we should convert it to int,
-# because other `_id` fields in `data.attributes` are int.
-def convert_data_id_to_int(data: dict):
-    data['data']['id'] = int(data['data']['id'])
+# The `id` and `_id` fields are mixing str and int in origin webhooks request,
+# don't know why, but we should choose str as the type based on the following reasons:
+#
+# 1. We should avoid id number of int insufficient (get rich).
+# 2. Go unmarshall JSON number as float64 (loss of precision).
+def convert_id_to_str_in_json(data: Any):
+    if isinstance(data, list):
+        for item in data:
+            convert_id_to_str_in_json(item)
+    elif isinstance(data, dict):
+        for key, value in data.items():
+            if not isinstance(key, str):
+                raise TypeError(f'key must be string instead of {type(key)}')
+            if (key == 'id' or key.endswith('_id')) and isinstance(value, int):
+                data[key] = str(value)
+            else:
+                convert_id_to_str_in_json(value)
 
 
 # Assume that `data` is created from `json.loads()`,

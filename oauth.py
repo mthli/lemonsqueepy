@@ -111,7 +111,7 @@ async def upsert_user_from_google_oauth(credential: str, user_token: str = '') -
             update_timestamp=timestamp,
         )
     else:
-        # FIXME (Matthew Lee) should renew user token here?
+        # FIXME (Matthew Lee) should we renew user token here?
         # user.token = generate_user_token(user.id, timestamp)
         user.email = email
         user.name = name

@@ -18,12 +18,12 @@ async def setup_licenses():
     await licenses.create_index('meta.event_name', background=True)                # nopep8; str.
     await licenses.create_index('meta.custom_data.user_id', background=True)       # nopep8; str.
 
-    await licenses.create_index('data.id', background=True)                        # nopep8; int, as the `license_id`.
-    await licenses.create_index('data.attributes.store_id', background=True)       # nopep8; int.
-    await licenses.create_index('data.attributes.customer_id', background=True)    # nopep8; int.
-    await licenses.create_index('data.attributes.order_id', background=True)       # nopep8; int.
-    await licenses.create_index('data.attributes.order_item_id', background=True)  # nopep8; int.
-    await licenses.create_index('data.attributes.product_id', background=True)     # nopep8; int.
+    await licenses.create_index('data.id', background=True)                        # nopep8; str, as the `license_id`.
+    await licenses.create_index('data.attributes.store_id', background=True)       # nopep8; str.
+    await licenses.create_index('data.attributes.customer_id', background=True)    # nopep8; str.
+    await licenses.create_index('data.attributes.order_id', background=True)       # nopep8; str.
+    await licenses.create_index('data.attributes.order_item_id', background=True)  # nopep8; str.
+    await licenses.create_index('data.attributes.product_id', background=True)     # nopep8; str.
 
     await licenses.create_index('data.attributes.user_email', background=True)     # nopep8; str.
     await licenses.create_index('data.attributes.key', background=True)            # nopep8; str.
@@ -45,8 +45,8 @@ async def insert_license(license: dict):
 
 async def find_latest_license(
     user_id: str,
-    store_id: int,
-    product_id: int,
+    store_id: str,
+    product_id: str,
     key: str,
     test_mode: bool = False,
 ) -> Optional[dict]:

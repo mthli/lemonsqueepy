@@ -10,7 +10,7 @@ from werkzeug.exceptions import HTTPException
 
 from lemon import check_signing_secret, parse_event, dispatch_event
 from logger import logger
-from mongo.db import convert_data_id_to_int, \
+from mongo.db import convert_id_to_str_in_json, \
     convert_fields_to_datetime_in_json
 from mongo.licenses import setup_licenses, \
     find_latest_license, \
@@ -94,7 +94,7 @@ async def google_oauth():
 
     user = await upsert_user_from_google_oauth(
         credential=_parse_str_from_dict(body, 'credential'),
-        user_token=_parse_str_from_dict(body, 'user_token', False),
+        user_token=_parse_str_from_dict(body, 'user_token', required=False),
     )
 
     return asdict(user)
@@ -111,7 +111,7 @@ async def lemonsqueezy_webhooks():
     check_signing_secret(request.headers, data)
 
     event = parse_event(request.headers)
-    convert_data_id_to_int(body)
+    convert_id_to_str_in_json(body)
     convert_fields_to_datetime_in_json(body)
     await dispatch_event(event, body)
 
@@ -119,28 +119,19 @@ async def lemonsqueezy_webhooks():
 
 
 # ?user_token=str  required.
-# &store_id=int    required; must > 0.
-# &product_id=int  required; must > 0.
-# &variant_id=int  optional; must > 0, default is 1.
-# &test_mode=bool  optional; default is false.
+# &store_id=str    required.
+# &product_id=str  required.
+# &variant_id=str  optional; default is '1'.
+# &test_mode=bool  optional; default is `false`.
 #
 # TODO (Matthew Lee) add redis cache.
 @app.get('/api/orders/latest')
 async def check_latest_order():
     user_token = _parse_str_from_dict(request.args, 'user_token')
+    store_id = _parse_str_from_dict(request.args, 'store_id')
+    product_id = _parse_str_from_dict(request.args, 'product_id')
+    variant_id = _parse_str_from_dict(request.args, 'variant_id', default='1', required=False)  # nopep8.
     test_mode = request.args.get('test_mode', False, bool)
-
-    store_id = request.args.get('store_id', 0, int)
-    if store_id <= 0:
-        abort(400, '"store_id" must > 0')
-
-    product_id = request.args.get('product_id', 0, int)
-    if product_id <= 0:
-        abort(400, '"product_id" must > 0')
-
-    variant_id = request.args.get('variant_id', 1, int)
-    if variant_id <= 0:
-        abort(400, '"variant_id" must > 0')
 
     res = await find_latest_order(
         user_id=decrypt_user_token(user_token).user_id,
@@ -157,28 +148,19 @@ async def check_latest_order():
 
 
 # ?user_token=str  required.
-# &store_id=int    required; must > 0.
-# &product_id=int  required; must > 0.
-# &variant_id=int  optional; must > 0, default is 1.
-# &test_mode=bool  optional; default is false.
+# &store_id=str    required.
+# &product_id=str  required.
+# &variant_id=str  optional; default is '1'.
+# &test_mode=bool  optional; default is `false`.
 #
 # TODO (Matthew Lee) add redis cache.
 @app.get('/api/subscriptions/latest')
 async def check_latest_subscription():
     user_token = _parse_str_from_dict(request.args, 'user_token')
+    store_id = _parse_str_from_dict(request.args, 'store_id')
+    product_id = _parse_str_from_dict(request.args, 'product_id')
+    variant_id = _parse_str_from_dict(request.args, 'variant_id', default='1', required=False)  # nopep8.
     test_mode = request.args.get('test_mode', False, bool)
-
-    store_id = request.args.get('store_id', 0, int)
-    if store_id <= 0:
-        abort(400, '"store_id" must > 0')
-
-    product_id = request.args.get('product_id', 0, int)
-    if product_id <= 0:
-        abort(400, '"product_id" must > 0')
-
-    variant_id = request.args.get('variant_id', 1, int)
-    if variant_id <= 0:
-        abort(400, '"variant_id" must > 0')
 
     res = await find_latest_subscription(
         user_id=decrypt_user_token(user_token).user_id,
@@ -199,25 +181,19 @@ async def check_latest_subscription():
 
 
 # ?user_token=str  required.
-# &store_id=int    required; must > 0.
-# &product_id=int  required; must > 0.
-# &key=int         required.
-# &test_mode=bool  optional; default is false.
+# &store_id=str    required.
+# &product_id=str  required.
+# &key=str         required.
+# &test_mode=bool  optional; default is `false`.
 #
 # TODO (Matthew Lee) add redis cache.
 @app.get('/api/licenses/latest')
 async def check_latest_license():
     user_token = _parse_str_from_dict(request.args, 'user_token')
+    store_id = _parse_str_from_dict(request.args, 'store_id')
+    product_id = _parse_str_from_dict(request.args, 'product_id')
     key = _parse_str_from_dict(request.args, 'key')
     test_mode = request.args.get('test_mode', False, bool)
-
-    store_id = request.args.get('store_id', 0, int)
-    if store_id <= 0:
-        abort(400, '"store_id" must > 0')
-
-    product_id = request.args.get('product_id', 0, int)
-    if product_id <= 0:
-        abort(400, '"product_id" must > 0')
 
     res = await find_latest_license(
         user_id=decrypt_user_token(user_token).user_id,
@@ -237,17 +213,20 @@ async def check_latest_license():
     return convert_license_to_response(res, receipt)
 
 
-def _parse_str_from_dict(data: dict, key: str, required: bool = True) -> str:
-    value = data.get(key, '')
+def _parse_str_from_dict(
+    data: dict,
+    key: str,
+    default: str = '',
+    required: bool = True,
+) -> str:
+    value = data.get(key, default)
     if not isinstance(value, str):
         if required:
             abort(400, f'"{key}" must be string')
-        return ''
 
     value = value.strip()
     if not value:
         if required:
             abort(400, f'"{key}" must not empty')
-        return ''
 
     return value

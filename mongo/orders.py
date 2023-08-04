@@ -18,18 +18,18 @@ async def setup_orders():
     await orders.create_index('meta.event_name', background=True)              # nopep8; str.
     await orders.create_index('meta.custom_data.user_id', background=True)     # nopep8; str.
 
-    await orders.create_index('data.id', background=True)                      # nopep8; int, as the `order_id`.
-    await orders.create_index('data.attributes.store_id', background=True)     # nopep8; int.
-    await orders.create_index('data.attributes.customer_id', background=True)  # nopep8; int.
+    await orders.create_index('data.id', background=True)                      # nopep8; str, as the `order_id`.
+    await orders.create_index('data.attributes.store_id', background=True)     # nopep8; str.
+    await orders.create_index('data.attributes.customer_id', background=True)  # nopep8; str.
     await orders.create_index('data.attributes.identifier', background=True)   # nopep8; str.
 
     await orders.create_index('data.attributes.user_email', background=True)   # nopep8; str.
     await orders.create_index('data.attributes.status', background=True)       # nopep8; str.
 
-    await orders.create_index('data.attributes.first_order_item.id', background=True)          # nopep8; int, as the `order_item_id`.
-    await orders.create_index('data.attributes.first_order_item.order_id', background=True)    # nopep8; int, as the `order_id`.
-    await orders.create_index('data.attributes.first_order_item.product_id', background=True)  # nopep8; int, as the `product_id`.
-    await orders.create_index('data.attributes.first_order_item.variant_id', background=True)  # nopep8; int, as the `variant_id`.
+    await orders.create_index('data.attributes.first_order_item.id', background=True)          # nopep8; str, as the `order_item_id`.
+    await orders.create_index('data.attributes.first_order_item.order_id', background=True)    # nopep8; str, as the `order_id`.
+    await orders.create_index('data.attributes.first_order_item.product_id', background=True)  # nopep8; str, as the `product_id`.
+    await orders.create_index('data.attributes.first_order_item.variant_id', background=True)  # nopep8; str, as the `variant_id`.
 
     await orders.create_index('data.attributes.created_at', background=True)   # nopep8; datetime.
     await orders.create_index('data.attributes.updated_at', background=True)   # nopep8; datetime.
@@ -46,9 +46,9 @@ async def insert_order(order: dict):
 
 async def find_latest_order(
     user_id: str,
-    store_id: int,
-    product_id: int,
-    variant_id: int = 1,  # as the "default" variant.
+    store_id: str,
+    product_id: str,
+    variant_id: str = '1',  # as the "default" variant.
     test_mode: bool = False,
 ) -> Optional[dict]:
     cursor = orders \
