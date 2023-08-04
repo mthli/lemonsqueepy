@@ -12,12 +12,15 @@ from lemon import check_signing_secret, parse_event, dispatch_event
 from logger import logger
 from mongo.db import convert_fields_to_datetime_in_json
 from mongo.licenses import setup_licenses, \
-    check_latest_license as check_latest_license_internal
+    find_latest_license, \
+    convert_license_to_response
 from mongo.orders import setup_orders, \
-    check_latest_order as check_latest_order_internal
+    find_latest_order, \
+    convert_order_to_response
 from mongo.subscriptions import setup_subscriptions, \
     setup_subscription_payments, \
-    check_latest_subscription as check_latest_subscription_internal
+    find_latest_subscription, \
+    convert_subscription_to_response
 from mongo.users import User, setup_users, upsert_user
 from oauth import generate_user_token, \
     decrypt_user_token, \
@@ -118,7 +121,7 @@ async def lemonsqueezy_webhooks():
 # &test_mode=bool  optional; default is false.
 #
 # TODO (Matthew Lee) add redis cache.
-@app.get('/api/orders/latest/check')
+@app.get('/api/orders/latest')
 async def check_latest_order():
     user_token = _parse_str_from_dict(request.args, 'user_token')
     test_mode = request.args.get('test_mode', False, bool)
@@ -135,7 +138,7 @@ async def check_latest_order():
     if variant_id <= 0:
         abort(400, '"variant_id" must > 0')
 
-    res = await check_latest_order_internal(
+    res = await find_latest_order(
         user_id=decrypt_user_token(user_token).user_id,
         store_id=store_id,
         product_id=product_id,
@@ -143,9 +146,10 @@ async def check_latest_order():
         test_mode=test_mode,
     )
 
-    return {
-        'available': res,
-    }
+    if not res:
+        abort(404, 'order not found')
+
+    return convert_order_to_response(res)
 
 
 # ?user_token=str  required.
@@ -155,7 +159,7 @@ async def check_latest_order():
 # &test_mode=bool  optional; default is false.
 #
 # TODO (Matthew Lee) add redis cache.
-@app.get('/api/subscriptions/latest/check')
+@app.get('/api/subscriptions/latest')
 async def check_latest_subscription():
     user_token = _parse_str_from_dict(request.args, 'user_token')
     test_mode = request.args.get('test_mode', False, bool)
@@ -172,7 +176,7 @@ async def check_latest_subscription():
     if variant_id <= 0:
         abort(400, '"variant_id" must > 0')
 
-    res = await check_latest_subscription_internal(
+    res = await find_latest_subscription(
         user_id=decrypt_user_token(user_token).user_id,
         store_id=store_id,
         product_id=product_id,
@@ -180,9 +184,10 @@ async def check_latest_subscription():
         test_mode=test_mode,
     )
 
-    return {
-        'available': res,
-    }
+    if not res:
+        abort(404, 'subscription not found')
+
+    return convert_subscription_to_response(res)
 
 
 # ?user_token=str  required.
@@ -192,7 +197,7 @@ async def check_latest_subscription():
 # &test_mode=bool  optional; default is false.
 #
 # TODO (Matthew Lee) add redis cache.
-@app.get('/api/licenses/latest/check')
+@app.get('/api/licenses/latest')
 async def check_latest_license():
     user_token = _parse_str_from_dict(request.args, 'user_token')
     key = _parse_str_from_dict(request.args, 'key')
@@ -206,7 +211,7 @@ async def check_latest_license():
     if product_id <= 0:
         abort(400, '"product_id" must > 0')
 
-    res = await check_latest_license_internal(
+    res = await find_latest_license(
         user_id=decrypt_user_token(user_token).user_id,
         store_id=store_id,
         product_id=product_id,
@@ -214,9 +219,10 @@ async def check_latest_license():
         test_mode=test_mode,
     )
 
-    return {
-        'available': res,
-    }
+    if not res:
+        abort(404, 'license not found')
+
+    return convert_license_to_response(res)
 
 
 def _parse_str_from_dict(data: dict, key: str, required: bool = True) -> str:

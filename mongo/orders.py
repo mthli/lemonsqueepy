@@ -64,20 +64,7 @@ async def find_latest_order(
     return res[0] if res else None
 
 
-async def check_latest_order(
-    user_id: str,
-    store_id: int,
-    product_id: int,
-    variant_id: int = 1,  # as the "default" variant.
-    test_mode: bool = False,
-) -> bool:
-    latest = await find_latest_order(
-        user_id=user_id,
-        store_id=store_id,
-        product_id=product_id,
-        variant_id=variant_id,
-        test_mode=test_mode,
-    )
-
-    # Check whether the latest order status is "paid".
-    return latest['status'] == str(Status.PAID) if latest else False
+def convert_order_to_response(order: dict) -> dict:
+    return {
+        # TODO (Matthew Lee) ...
+    }

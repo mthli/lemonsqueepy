@@ -64,20 +64,7 @@ async def find_latest_license(
     return res[0] if res else None
 
 
-async def check_latest_license(
-    user_id: str,
-    store_id: int,
-    product_id: int,
-    key: str,
-    test_mode: bool = False,
-) -> bool:
-    latest = await find_latest_license(
-        user_id=user_id,
-        store_id=store_id,
-        product_id=product_id,
-        key=key,
-        test_mode=test_mode,
-    )
-
-    # Check whether the latest license status is "active".
-    return latest['status'] == str(Status.ACTIVE) if latest else False
+def convert_license_to_response(license: dict) -> dict:
+    return {
+        # TODO (Matthew Lee) ...
+    }
