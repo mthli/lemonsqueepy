@@ -3,7 +3,7 @@ from typing import Optional
 
 from strenum import StrEnum
 
-from mongo.db import orders
+from mongo.db import orders, convert_datetime_to_isoformat_with_z
 
 
 @unique
@@ -65,6 +65,19 @@ async def find_latest_order(
 
 
 def convert_order_to_response(order: dict) -> dict:
+    status = order['data']['attributes']['status']
+    receipt = order['data']['attributes']['urls']['receipt']
+
+    created_at = order['data']['attributes']['created_at']
+    created_at = convert_datetime_to_isoformat_with_z(created_at)
+
+    updated_at = order['data']['attributes']['updated_at']
+    created_at = convert_datetime_to_isoformat_with_z(updated_at)
+
     return {
-        # TODO (Matthew Lee) ...
+        'available': status == str(Status.PAID),
+        'status': status,
+        'receipt': receipt,
+        'created_at': created_at,
+        'updated_at': updated_at,
     }

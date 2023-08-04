@@ -3,8 +3,9 @@ from typing import Optional
 
 from strenum import StrEnum
 
-from mongo.db import subscriptions
-from mongo.db import subscription_payments
+from mongo.db import subscriptions, \
+    subscription_payments, \
+    convert_datetime_to_isoformat_with_z
 
 
 @unique
@@ -95,7 +96,21 @@ async def find_latest_subscription(
     return res[0] if res else None
 
 
+# TODO (Matthew Lee) `update_payment_method` is valid for 24 hours from time of request.
 def convert_subscription_to_response(subscription: dict) -> dict:
+    status = subscription['data']['attributes']['status']
+    update_payment_method = subscription['data']['attributes']['urls']['update_payment_method']
+
+    created_at = subscription['data']['attributes']['created_at']
+    created_at = convert_datetime_to_isoformat_with_z(created_at)
+
+    updated_at = subscription['data']['attributes']['updated_at']
+    created_at = convert_datetime_to_isoformat_with_z(updated_at)
+
     return {
-        # TODO (Matthew Lee) ...
+        'available': status == str(Status.ON_TRIAL) or status == str(Status.ACTIVE),
+        'status': status,
+        'update_payment_method': update_payment_method,
+        'created_at': created_at,
+        'updated_at': updated_at,
     }

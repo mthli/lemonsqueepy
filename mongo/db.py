@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any
 
 from dateutil import parser
@@ -33,3 +34,8 @@ def convert_fields_to_datetime_in_json(data: Any):
                 data[key] = parser.isoparse(value)
             except Exception:
                 pass  # DO NOTHING.
+
+
+# https://stackoverflow.com/a/42777551
+def convert_datetime_to_isoformat_with_z(dt: datetime) -> str:
+    return dt.isoformat().replace('+00:00', 'Z')
