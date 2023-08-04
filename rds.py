@@ -18,10 +18,6 @@ GOOGLE_OAUTH_CLIENT_IDS = 'google_oauth_client_ids'  # set.
 # for example "0123456789abcdef" (don't use it, just a example, haha).
 LEMONSQUEEZY_SIGNING_SECRET = 'lemonsqueezy_signing_secret'  # string.
 
-# For fetching some data from lemonsqueezy.
-# https://docs.lemonsqueezy.com/api#authentication
-LEMONSQUEEZY_API_KEY = 'lemonsqueezy_api_key'  # string.
-
 # Default host and port.
 rds = redis.from_url('redis://localhost:6379')
 
