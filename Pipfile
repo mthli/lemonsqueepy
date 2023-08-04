@@ -14,6 +14,7 @@ validators = "*"
 pyjwt = "*"
 pycryptodome = "*"
 python-dateutil = "*"
+async-lru = "*"
 
 [dev-packages]
 autopep8 = "*"
