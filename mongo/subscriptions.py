@@ -104,8 +104,15 @@ async def find_latest_subscription(
 
 
 async def find_subscription_invoice_url(subscription: dict) -> str:
-    # TODO (Matthew Lee) ...
-    pass
+    store_id = subscription['data']['attributes']['store_id']
+    subscription_id = subscription['data']['id']
+
+    payment = await subscription_payments.find_one({
+        'data.attributes.store_id': store_id,
+        'data.attributes.subscription_id': subscription_id,
+    })
+
+    return payment['data']['attributes']['urls']['invoice_url'] if payment else ''
 
 
 def convert_subscription_to_response(subscription: dict, invoice_url: str = '') -> dict:

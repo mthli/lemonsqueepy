@@ -19,7 +19,8 @@ subscription_payments = _db['subscription_payments']  # collection.
 # https://lemonsqueezy.nolt.io/234
 #
 # The `data.id` is str instead of int in origin webhooks request,
-# don't know why, but we should convert it to int.
+# don't know why, but we should convert it to int,
+# because other `_id` fields in `data.attributes` are int.
 def convert_data_id_to_int(data: dict):
     data['data']['id'] = int(data['data']['id'])
 
