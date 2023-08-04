@@ -10,7 +10,8 @@ from werkzeug.exceptions import HTTPException
 
 from lemon import check_signing_secret, parse_event, dispatch_event
 from logger import logger
-from mongo.db import convert_fields_to_datetime_in_json
+from mongo.db import convert_data_id_to_int, \
+    convert_fields_to_datetime_in_json
 from mongo.licenses import setup_licenses, \
     find_latest_license, \
     find_license_receipt, \
@@ -21,6 +22,7 @@ from mongo.orders import setup_orders, \
 from mongo.subscriptions import setup_subscriptions, \
     setup_subscription_payments, \
     find_latest_subscription, \
+    find_subscription_invoice_url, \
     convert_subscription_to_response
 from mongo.users import User, setup_users, upsert_user
 from oauth import generate_user_token, \
@@ -109,6 +111,7 @@ async def lemonsqueezy_webhooks():
     check_signing_secret(request.headers, data)
 
     event = parse_event(request.headers)
+    convert_data_id_to_int(body)
     convert_fields_to_datetime_in_json(body)
     await dispatch_event(event, body)
 
@@ -188,7 +191,11 @@ async def check_latest_subscription():
     if not res:
         abort(404, 'subscription not found')
 
-    return convert_subscription_to_response(res)
+    invoice_url = await find_subscription_invoice_url(res)
+    if not invoice_url:
+        abort(500, 'invoice not found')
+
+    return convert_subscription_to_response(res, invoice_url)
 
 
 # ?user_token=str  required.

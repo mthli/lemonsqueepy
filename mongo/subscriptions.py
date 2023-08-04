@@ -26,18 +26,21 @@ class BillingReason(StrEnum):
     UPDATED = 'updated'
 
 
-# FIXME (Matthew Lee) where is the `subscription_id` or something like that?
 async def setup_subscriptions():
     await subscriptions.create_index('meta.event_name', background=True)                # nopep8; str.
     await subscriptions.create_index('meta.custom_data.user_id', background=True)       # nopep8; str.
+
+    await subscriptions.create_index('data.id', background=True)                        # nopep8; int, as the `subscription_id`.
     await subscriptions.create_index('data.attributes.store_id', background=True)       # nopep8; int.
     await subscriptions.create_index('data.attributes.customer_id', background=True)    # nopep8; int.
     await subscriptions.create_index('data.attributes.order_id', background=True)       # nopep8; int.
     await subscriptions.create_index('data.attributes.order_item_id', background=True)  # nopep8; int.
     await subscriptions.create_index('data.attributes.product_id', background=True)     # nopep8; int.
     await subscriptions.create_index('data.attributes.variant_id', background=True)     # nopep8; int.
+
     await subscriptions.create_index('data.attributes.user_email', background=True)     # nopep8; str.
     await subscriptions.create_index('data.attributes.status', background=True)         # nopep8; str.
+
     await subscriptions.create_index('data.attributes.created_at', background=True)     # nopep8; datetime.
     await subscriptions.create_index('data.attributes.updated_at', background=True)     # nopep8; datetime.
 
@@ -45,10 +48,14 @@ async def setup_subscriptions():
 async def setup_subscription_payments():
     await subscription_payments.create_index('meta.event_name', background=True)                  # nopep8; str.
     await subscription_payments.create_index('meta.custom_data.user_id', background=True)         # nopep8; str.
+
+    await subscription_payments.create_index('data.id', background=True)                          # nopep8; int, as the `invoice_id`.
     await subscription_payments.create_index('data.attributes.store_id', background=True)         # nopep8; int.
     await subscription_payments.create_index('data.attributes.subscription_id', background=True)  # nopep8; int.
+
     await subscription_payments.create_index('data.attributes.billing_reason', background=True)   # nopep8; str.
     await subscription_payments.create_index('data.attributes.status', background=True)           # nopep8; str.
+
     await subscription_payments.create_index('data.attributes.created_at', background=True)       # nopep8; datetime.
     await subscription_payments.create_index('data.attributes.updated_at', background=True)       # nopep8; datetime.
 
@@ -96,9 +103,19 @@ async def find_latest_subscription(
     return res[0] if res else None
 
 
-# TODO (Matthew Lee) `update_payment_method` is valid for 24 hours from time of request.
-def convert_subscription_to_response(subscription: dict) -> dict:
+async def find_subscription_invoice_url(subscription: dict) -> str:
+    # TODO (Matthew Lee) ...
+    pass
+
+
+def convert_subscription_to_response(subscription: dict, invoice_url: str = '') -> dict:
     status = subscription['data']['attributes']['status']
+
+    # FIXME (Matthew Lee)
+    # https://docs.lemonsqueezy.com/api/subscriptions#the-subscription-object
+    #
+    # The doc says that the URL is valid for 24 hours from time of request,
+    # but what the "time of request" means?
     update_payment_method = subscription['data']['attributes']['urls']['update_payment_method']
 
     created_at = subscription['data']['attributes']['created_at']
@@ -111,6 +128,7 @@ def convert_subscription_to_response(subscription: dict) -> dict:
         'available': status == str(Status.ON_TRIAL) or status == str(Status.ACTIVE),
         'status': status,
         'update_payment_method': update_payment_method,
+        'invoice_url': invoice_url,
         'created_at': created_at,
         'updated_at': updated_at,
     }

@@ -15,6 +15,15 @@ subscriptions = _db['subscriptions']  # collection.
 subscription_payments = _db['subscription_payments']  # collection.
 
 
+# FIXME (Matthew Lee)
+# https://lemonsqueezy.nolt.io/234
+#
+# The `data.id` is str instead of int in origin webhooks request,
+# don't know why, but we should convert it to int.
+def convert_data_id_to_int(data: dict):
+    data['data']['id'] = int(data['data']['id'])
+
+
 # Assume that `data` is created from `json.loads()`,
 # convert all ISO-8601 formatted date-time string fields to datetime type,
 # so we don't need to use MongoDB Aggregation Operations in those fields.
