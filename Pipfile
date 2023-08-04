@@ -14,6 +14,8 @@ validators = "*"
 pyjwt = "*"
 pycryptodome = "*"
 python-dateutil = "*"
+httpx = "*"
+tenacity = "*"
 
 [dev-packages]
 autopep8 = "*"
