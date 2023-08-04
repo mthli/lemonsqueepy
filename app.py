@@ -121,8 +121,6 @@ async def lemonsqueezy_webhooks():
 # &product_id=str  required.
 # &variant_id=str  optional; default is '1'.
 # &test_mode=bool  optional; default is `false`.
-#
-# TODO (Matthew Lee) add redis cache.
 @app.get('/api/orders/latest')
 async def check_latest_order():
     user_token = _parse_str_from_dict(request.args, 'user_token')
@@ -150,8 +148,6 @@ async def check_latest_order():
 # &product_id=str  required.
 # &variant_id=str  optional; default is '1'.
 # &test_mode=bool  optional; default is `false`.
-#
-# TODO (Matthew Lee) add redis cache.
 @app.get('/api/subscriptions/latest')
 async def check_latest_subscription():
     user_token = _parse_str_from_dict(request.args, 'user_token')
@@ -179,8 +175,6 @@ async def check_latest_subscription():
 # &product_id=str  required.
 # &key=str         required.
 # &test_mode=bool  optional; default is `false`.
-#
-# TODO (Matthew Lee) add redis cache.
 @app.get('/api/licenses/latest')
 async def check_latest_license():
     user_token = _parse_str_from_dict(request.args, 'user_token')
