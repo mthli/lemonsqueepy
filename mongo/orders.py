@@ -64,7 +64,7 @@ async def find_latest_order(
     return res[0] if res else None
 
 
-async def has_available_order(
+async def check_latest_order(
     user_id: str,
     store_id: int,
     product_id: int,

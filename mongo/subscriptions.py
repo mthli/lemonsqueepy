@@ -95,7 +95,7 @@ async def find_latest_subscription(
     return res[0] if res else None
 
 
-async def has_available_subscription(
+async def check_latest_subscription(
     user_id: str,
     store_id: int,
     product_id: int,

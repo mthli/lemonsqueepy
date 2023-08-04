@@ -64,7 +64,7 @@ async def find_latest_license(
     return res[0] if res else None
 
 
-async def has_available_license(
+async def check_latest_license(
     user_id: str,
     store_id: int,
     product_id: int,
