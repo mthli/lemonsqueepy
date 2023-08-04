@@ -3,7 +3,8 @@ from typing import Optional
 
 from strenum import StrEnum
 
-from mongo.db import subscriptions, \
+from mongo.db import orders, \
+    subscriptions, \
     subscription_payments, \
     convert_datetime_to_isoformat_with_z
 
@@ -115,8 +116,22 @@ async def find_subscription_invoice_url(subscription: dict) -> str:
     return payment['data']['attributes']['urls']['invoice_url'] if payment else ''
 
 
-def convert_subscription_to_response(subscription: dict, invoice_url: str = '') -> dict:
+async def find_subscription_receipt(subscription: dict) -> str:
+    store_id = subscription['data']['attributes']['store_id']
+    order_id = subscription['data']['attributes']['order_id']
+
+    order = await orders.find_one({
+        'data.id': order_id,
+        'data.attributes.store_id': store_id,
+    })
+
+    return order['data']['attributes']['urls']['receipt'] if order else ''
+
+
+async def convert_subscription_to_response(subscription: dict) -> dict:
     status = subscription['data']['attributes']['status']
+    receipt = await find_subscription_receipt(subscription)
+    invoice_url = await find_subscription_invoice_url(subscription)
 
     # FIXME (Matthew Lee)
     # https://docs.lemonsqueezy.com/api/subscriptions#the-subscription-object
@@ -134,8 +149,9 @@ def convert_subscription_to_response(subscription: dict, invoice_url: str = '') 
     return {
         'available': status == str(Status.ON_TRIAL) or status == str(Status.ACTIVE),
         'status': status,
-        'update_payment_method': update_payment_method,
+        'receipt': receipt,
         'invoice_url': invoice_url,
+        'update_payment_method': update_payment_method,
         'created_at': created_at,
         'updated_at': updated_at,
     }

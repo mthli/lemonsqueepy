@@ -14,7 +14,6 @@ from mongo.db import convert_id_to_str_in_json, \
     convert_fields_to_datetime_in_json
 from mongo.licenses import setup_licenses, \
     find_latest_license, \
-    find_license_receipt, \
     convert_license_to_response
 from mongo.orders import setup_orders, \
     find_latest_order, \
@@ -22,7 +21,6 @@ from mongo.orders import setup_orders, \
 from mongo.subscriptions import setup_subscriptions, \
     setup_subscription_payments, \
     find_latest_subscription, \
-    find_subscription_invoice_url, \
     convert_subscription_to_response
 from mongo.users import User, setup_users, upsert_user
 from oauth import generate_user_token, \
@@ -173,11 +171,7 @@ async def check_latest_subscription():
     if not res:
         abort(404, 'subscription not found')
 
-    invoice_url = await find_subscription_invoice_url(res)
-    if not invoice_url:
-        abort(500, 'invoice not found')
-
-    return convert_subscription_to_response(res, invoice_url)
+    return await convert_subscription_to_response(res)
 
 
 # ?user_token=str  required.
@@ -206,11 +200,7 @@ async def check_latest_license():
     if not res:
         abort(404, 'license not found')
 
-    receipt = await find_license_receipt(res)
-    if not receipt:
-        abort(500, 'receipt not found')
-
-    return convert_license_to_response(res, receipt)
+    return await convert_license_to_response(res)
 
 
 def _parse_str_from_dict(

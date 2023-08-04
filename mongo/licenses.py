@@ -3,7 +3,8 @@ from typing import Optional
 
 from strenum import StrEnum
 
-from mongo.db import licenses, orders, convert_datetime_to_isoformat_with_z
+from mongo.db import licenses, orders, \
+    convert_datetime_to_isoformat_with_z
 
 
 @unique
@@ -70,24 +71,19 @@ async def find_latest_license(
 
 async def find_license_receipt(license: dict) -> str:
     store_id = license['data']['attributes']['store_id']
-    customer_id = license['data']['attributes']['customer_id']
     order_id = license['data']['attributes']['order_id']
-    order_item_id = license['data']['attributes']['order_item_id']
-    product_id = license['data']['attributes']['product_id']
 
     order = await orders.find_one({
+        'data.id': order_id,
         'data.attributes.store_id': store_id,
-        'data.attributes.customer_id': customer_id,
-        'data.attributes.first_order_item.id': order_item_id,
-        'data.attributes.first_order_item.order_id': order_id,
-        'data.attributes.first_order_item.product_id': product_id,
     })
 
     return order['data']['attributes']['urls']['receipt'] if order else ''
 
 
-def convert_license_to_response(license: dict, receipt: str = '') -> dict:
+async def convert_license_to_response(license: dict) -> dict:
     status = license['data']['attributes']['status']
+    receipt = await find_license_receipt(license)
 
     created_at = license['data']['attributes']['created_at']
     created_at = convert_datetime_to_isoformat_with_z(created_at)
