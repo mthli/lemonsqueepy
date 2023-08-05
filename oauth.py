@@ -22,7 +22,7 @@ from rds import rds, get_str_from_rds, \
     GOOGLE_OAUTH_CLIENT_IDS, \
     LEMONSQUEEZY_SIGNING_SECRET
 
-# FIXME (Matthew Lee) not support asyncio for now.
+# Unsupported asyncio for now.
 _google_jwk_client = PyJWKClient(
     uri='https://www.googleapis.com/oauth2/v3/certs',
     cache_jwk_set=True,
@@ -110,7 +110,7 @@ async def upsert_user_from_google_oauth(credential: str, user_token: str = '') -
             update_timestamp=timestamp,
         )
     else:
-        # FIXME (Matthew Lee) should we renew user token here?
+        # Don't need to renew user token here.
         # user.token = generate_user_token(user.id, timestamp)
         user.email = email
         user.name = name

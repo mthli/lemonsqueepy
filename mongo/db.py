@@ -15,7 +15,6 @@ subscriptions = _db['subscriptions']  # collection.
 subscription_payments = _db['subscription_payments']  # collection.
 
 
-# FIXME (Matthew Lee)
 # https://lemonsqueezy.nolt.io/234
 #
 # The `id` and `_id` fields are mixing str and int in origin webhooks request,

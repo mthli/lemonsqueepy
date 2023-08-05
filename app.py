@@ -25,10 +25,7 @@ from mongo.subscriptions import setup_subscriptions, \
     setup_subscription_payments, \
     find_latest_subscription, \
     convert_subscription_to_response
-from mongo.users import User, \
-    setup_users, \
-    find_user_by_token, \
-    upsert_user
+from mongo.users import User, setup_users, upsert_user
 from oauth import generate_user_token, \
     decrypt_user_token, \
     upsert_user_from_google_oauth
