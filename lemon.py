@@ -135,14 +135,39 @@ async def activate_license(
     return await retrieve_license(license_key, api_key)
 
 
+# https://docs.lemonsqueezy.com/api/license-keys#retrieve-a-license-key
 async def retrieve_license(license_key: str, api_key: str = '') -> dict:
     if not api_key:
         api_key = get_str_from_rds(LEMONSQUEEZY_API_KEY)
 
     headers = {
         'Accept': 'application/json',
+        'Content-Type': 'application/vnd.api+json',
         'Authorization': f'Bearer {api_key}',
     }
 
-    # TODO (Matthew Lee) ...
-    pass
+    transport = httpx.AsyncHTTPTransport(retries=2)
+    client = httpx.AsyncClient(transport=transport)
+
+    try:
+        response = await client.get(
+            url=f'https://api.lemonsqueezy.com/v1/license-keys/{license_key}',
+            headers=headers,
+            timeout=10,
+            follow_redirects=True,
+        )
+    finally:
+        await client.aclose()
+
+    if not response.is_success:
+        abort(response.status_code, response.text)
+
+    # Automatically .aclose() if the response body is read to completion.
+    data: dict = response.json()
+    logger.info(
+        f'retrieve license, '
+        f'license_key={license_key}, '
+        f'body={json.dumps(data)}'
+    )
+
+    return data
