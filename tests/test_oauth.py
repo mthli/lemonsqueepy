@@ -30,6 +30,5 @@ def test_decrypt_user_token():
         secret=_LEMONSQUEEZY_SIGNING_SECRET,
     )
 
-    assert info
     assert info.user_id == user_id
     assert info.generate_timestamp == timestamp

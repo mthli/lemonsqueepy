@@ -57,7 +57,7 @@ def generate_user_token(user_id: str, timestamp: int, secret: str = '') -> str:
 
 
 # https://onboardbase.com/blog/aes-encryption-decryption/
-def decrypt_user_token(token: str, secret: str = '') -> Optional[TokenInfo]:
+def decrypt_user_token(token: str, secret: str = '') -> TokenInfo:
     secret = secret.strip()
     if not secret:
         secret = get_str_from_rds(LEMONSQUEEZY_SIGNING_SECRET)

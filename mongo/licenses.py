@@ -46,19 +46,20 @@ async def insert_license(license: dict):
     find_latest_license.cache_clear()
 
 
+# https://docs.lemonsqueezy.com/api/license-keys#retrieve-a-license-key
+#
+# Based on the upper API specs,
+# the `license_key` is unique in all stores,
+# so we just need to check the user ownership.
 @alru_cache()
 async def find_latest_license(
     user_id: str,
-    store_id: str,
-    product_id: str,
     license_key: str,
     test_mode: bool = False,
 ) -> Optional[dict]:
     cursor = licenses \
         .find({
             'meta.custom_data.user_id': user_id,
-            'data.attributes.store_id': store_id,
-            'data.attributes.product_id': product_id,
             'data.attributes.key': license_key,
             'data.attributes.test_mode': test_mode,
         }) \

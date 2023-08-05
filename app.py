@@ -8,7 +8,10 @@ from quart import Quart, abort, request
 from quart_cors import cors
 from werkzeug.exceptions import HTTPException
 
-from lemon import check_signing_secret, parse_event, dispatch_event
+from lemon import check_signing_secret, \
+    parse_event, \
+    dispatch_event, \
+    activate_license as activate_license_internal
 from logger import logger
 from mongo.db import convert_id_to_str_in_json, \
     convert_fields_to_datetime_in_json
@@ -22,7 +25,10 @@ from mongo.subscriptions import setup_subscriptions, \
     setup_subscription_payments, \
     find_latest_subscription, \
     convert_subscription_to_response
-from mongo.users import User, setup_users, upsert_user
+from mongo.users import User, \
+    setup_users, \
+    find_user_by_token, \
+    upsert_user
 from oauth import generate_user_token, \
     decrypt_user_token, \
     upsert_user_from_google_oauth
@@ -176,23 +182,17 @@ async def check_latest_subscription():
 
 
 # ?user_token=str   required.
-# &store_id=str     required.
-# &product_id=str   required.
 # &license_key=str  required.
 # &test_mode=bool   optional; default is `false`.
 @app.get('/api/licenses/latest')
 async def check_latest_license():
     user_token = _parse_str_from_dict(request.args, 'user_token')
-    store_id = _parse_str_from_dict(request.args, 'store_id')
-    product_id = _parse_str_from_dict(request.args, 'product_id')
     license_key = _parse_str_from_dict(request.args, 'license_key')
     test_mode = request.args.get('test_mode', False, bool)
 
     res = await find_latest_license(
         user_id=decrypt_user_token(user_token).user_id,
-        store_id=store_id,
-        product_id=product_id,
-        key=license_key,
+        license_key=license_key,
         test_mode=test_mode,
     )
 
@@ -206,6 +206,7 @@ async def check_latest_license():
 #   'user_token':    required; str.
 #   'license_key':   required; str.
 #   'instance_name': optional; str.
+#   'test_mode':     optional; bool, default is `false`.
 # }
 @app.post('/api/licenses/activate')
 async def activate_license():
@@ -215,10 +216,27 @@ async def activate_license():
 
     user_token = _parse_str_from_dict(body, 'user_token')
     license_key = _parse_str_from_dict(body, 'license_key')
-    instance_name = _parse_str_from_dict(body, 'instance_name', required=False)
+    test_mode = bool(body.get('test_mode', False))
 
-    # TODO
-    return {}
+    instance_name = _parse_str_from_dict(
+        data=body,
+        key='instance_name',
+        default=str(int(time.time())),  # activate timestamp in seconds.
+        required=False,
+    )
+
+    # Check the user ownership.
+    res = await find_latest_license(
+        user_id=decrypt_user_token(user_token).user_id,
+        license_key=license_key,
+        test_mode=test_mode,
+    )
+
+    if not res:
+        abort(404, 'license not found')
+
+    res = await activate_license_internal(license_key, instance_name)
+    return await convert_license_to_response(res)
 
 
 def _parse_str_from_dict(

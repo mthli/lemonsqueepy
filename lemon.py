@@ -1,5 +1,8 @@
 import hashlib
 import hmac
+import json
+
+import httpx
 
 from enum import unique
 
@@ -7,10 +10,13 @@ from quart import abort
 from strenum import StrEnum
 from werkzeug.datastructures import Headers
 
+from logger import logger
 from mongo.licenses import insert_license
 from mongo.orders import insert_order
 from mongo.subscriptions import insert_subscription, insert_subscription_payment
-from rds import get_str_from_rds, LEMONSQUEEZY_SIGNING_SECRET
+from rds import get_str_from_rds, \
+    LEMONSQUEEZY_SIGNING_SECRET, \
+    LEMONSQUEEZY_API_KEY
 
 
 # https://docs.lemonsqueezy.com/help/webhooks#event-types
@@ -71,3 +77,72 @@ async def dispatch_event(event: Event, body: dict):
         await insert_license(body)
     else:
         abort(400, f'unsupported event, event={str(event)}')
+
+
+# https://docs.lemonsqueezy.com/help/licensing/license-api#post-v1-licenses-activate
+#
+# FIXME (Matthew Lee)
+# API calls are rate limited to 60 / minute,
+# but the rate limited http code is undocumented,
+# don't know whether it is 429 or not for now until we reach and log it.
+async def activate_license(
+    license_key: str,
+    instance_name: str,
+    api_key: str = '',
+) -> dict:
+    if not api_key:
+        api_key = get_str_from_rds(LEMONSQUEEZY_API_KEY)
+
+    headers = {
+        'Accept': 'application/json',
+        'Authorization': f'Bearer {api_key}',
+    }
+
+    data = {
+        'license_key': license_key,
+        'instance_name': instance_name,
+    }
+
+    transport = httpx.AsyncHTTPTransport(retries=2)
+    client = httpx.AsyncClient(transport=transport)
+
+    try:
+        # Content-Type must be 'application/x-www-form-urlencoded'.
+        response = await client.post(
+            url='https://api.lemonsqueezy.com/v1/licenses/activate',
+            headers=headers,
+            data=data,
+            timeout=10,
+            follow_redirects=True,
+        )
+    finally:
+        await client.aclose()
+
+    if not response.is_success:
+        abort(response.status_code, response.text)
+
+    # Automatically .aclose() if the response body is read to completion.
+    data: dict = response.json()
+    logger.info(
+        f'activate license, '
+        f'license_key={license_key}, '
+        f'instance_name={instance_name}, '
+        f'body={json.dumps(data)}'
+    )
+
+    # The `data` structure is not similar to webhooks request,
+    # so we retrieve license again for later code reusing.
+    return await retrieve_license(license_key, api_key)
+
+
+async def retrieve_license(license_key: str, api_key: str = '') -> dict:
+    if not api_key:
+        api_key = get_str_from_rds(LEMONSQUEEZY_API_KEY)
+
+    headers = {
+        'Accept': 'application/json',
+        'Authorization': f'Bearer {api_key}',
+    }
+
+    # TODO (Matthew Lee) ...
+    pass
