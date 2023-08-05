@@ -51,7 +51,7 @@ async def find_latest_license(
     user_id: str,
     store_id: str,
     product_id: str,
-    key: str,
+    license_key: str,
     test_mode: bool = False,
 ) -> Optional[dict]:
     cursor = licenses \
@@ -59,7 +59,7 @@ async def find_latest_license(
             'meta.custom_data.user_id': user_id,
             'data.attributes.store_id': store_id,
             'data.attributes.product_id': product_id,
-            'data.attributes.key': key,
+            'data.attributes.key': license_key,
             'data.attributes.test_mode': test_mode,
         }) \
         .sort('data.attributes.updated_at', -1) \
@@ -88,6 +88,9 @@ async def convert_license_to_response(license: dict) -> dict:
     status = license['data']['attributes']['status']
     receipt = await find_license_receipt(license)
 
+    activation_limit = license['data']['attributes']['activation_limit']
+    instances_count = license['data']['attributes']['instances_count']
+
     created_at = license['data']['attributes']['created_at']
     created_at = convert_datetime_to_isoformat_with_z(created_at)
 
@@ -98,6 +101,8 @@ async def convert_license_to_response(license: dict) -> dict:
         'available': status == str(Status.ACTIVE),
         'status': status,
         'receipt': receipt,
+        'activation_limit': activation_limit,
+        'instances_count': instances_count,
         'created_at': created_at,
         'updated_at': updated_at,
     }

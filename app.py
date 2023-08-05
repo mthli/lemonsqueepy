@@ -99,6 +99,11 @@ async def google_oauth():
 
 
 # https://docs.lemonsqueezy.com/help/webhooks#webhook-requests
+#
+# FIXME (Matthew Lee)
+# Currently we strongly depends webhooks usability,
+# but when it not available,
+# we need to fallback to manual request Lemon Squeezy APIs.
 @app.post('/api/webhooks/lemonsqueezy')
 async def lemonsqueezy_webhooks():
     # Always record webhooks body for debugging.
@@ -170,24 +175,24 @@ async def check_latest_subscription():
     return await convert_subscription_to_response(res)
 
 
-# ?user_token=str  required.
-# &store_id=str    required.
-# &product_id=str  required.
-# &key=str         required.
-# &test_mode=bool  optional; default is `false`.
+# ?user_token=str   required.
+# &store_id=str     required.
+# &product_id=str   required.
+# &license_key=str  required.
+# &test_mode=bool   optional; default is `false`.
 @app.get('/api/licenses/latest')
 async def check_latest_license():
     user_token = _parse_str_from_dict(request.args, 'user_token')
     store_id = _parse_str_from_dict(request.args, 'store_id')
     product_id = _parse_str_from_dict(request.args, 'product_id')
-    key = _parse_str_from_dict(request.args, 'key')
+    license_key = _parse_str_from_dict(request.args, 'license_key')
     test_mode = request.args.get('test_mode', False, bool)
 
     res = await find_latest_license(
         user_id=decrypt_user_token(user_token).user_id,
         store_id=store_id,
         product_id=product_id,
-        key=key,
+        key=license_key,
         test_mode=test_mode,
     )
 
@@ -195,6 +200,25 @@ async def check_latest_license():
         abort(404, 'license not found')
 
     return await convert_license_to_response(res)
+
+
+# {
+#   'user_token':    required; str.
+#   'license_key':   required; str.
+#   'instance_name': optional; str.
+# }
+@app.post('/api/licenses/activate')
+async def activate_license():
+    # Always record api body for debugging.
+    body: dict = await request.get_json() or {}
+    logger.info(f'/api/licenses/activate, body={json.dumps(body)}')
+
+    user_token = _parse_str_from_dict(body, 'user_token')
+    license_key = _parse_str_from_dict(body, 'license_key')
+    instance_name = _parse_str_from_dict(body, 'instance_name', required=False)
+
+    # TODO
+    return {}
 
 
 def _parse_str_from_dict(

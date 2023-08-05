@@ -9,7 +9,7 @@ from quart import abort
 # just execute `SADD google_oauth_client_ids "..."` in redis-cli.
 GOOGLE_OAUTH_CLIENT_IDS = 'google_oauth_client_ids'  # set.
 
-# For checking whether the requests are sent from lemonsqueezy.
+# For checking whether the requests are sent from Lemon Squeezy.
 # https://docs.lemonsqueezy.com/help/webhooks#signing-requests
 #
 # We also use this secret to generate user token with AES-128 algorithm,
@@ -18,8 +18,8 @@ GOOGLE_OAUTH_CLIENT_IDS = 'google_oauth_client_ids'  # set.
 # for example "0123456789abcdef" (don't use it, just a example, haha).
 LEMONSQUEEZY_SIGNING_SECRET = 'lemonsqueezy_signing_secret'  # string.
 
-# Interact with the lemonsqueezy backend.
-# https://docs.lemonsqueezy.com/guides/developer-guide/getting-started#authentication
+# Interact with the Lemon Squeezy backend.
+# https://docs.lemonsqueezy.com/guides/developer-guide/getting-started#api-overview
 LEMONSQUEEZY_API_KEY = 'lemonsqueezy_api_key'  # string.
 
 # Default host and port.
