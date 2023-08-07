@@ -55,8 +55,8 @@ def handle_exception(e: HTTPException):
     response = e.get_response()
     response.data = json.dumps({
         'code': e.code,
-        'name': e.name,
-        'description': e.description,
+        'name': e.name,  # as JavaScript Error `name`.
+        'message': e.description,  # as JavaScript Error `message`.
     })
     response.content_type = 'application/json'
     logger.error(f'errorhandler, data={response.data}')
