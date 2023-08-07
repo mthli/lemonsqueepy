@@ -11,7 +11,6 @@ from uuid import uuid4
 
 from Crypto.Cipher import AES
 from jwt import PyJWKClient
-from jwt.exceptions import ExpiredSignatureError
 from quart import abort
 from validators import ValidationFailure
 
@@ -78,7 +77,6 @@ async def upsert_user_from_google_oauth(
     verify_exp: bool = False,
 ) -> User:
     payload: dict = {}
-    latest_err: Optional[Exception] = None
 
     client_ids = rds.smembers(GOOGLE_OAUTH_CLIENT_IDS)
     for cid in client_ids:
@@ -92,17 +90,14 @@ async def upsert_user_from_google_oauth(
             logger.exception('_decode_google_oauth_credential')
             latest_err = e
             pass  # DO NOTHING.
-
     if not payload:
-        if isinstance(latest_err, ExpiredSignatureError):
-            abort(401, f'credential has expired, credential={credential}')
-        abort(403, f'invalid credential, credential={credential}')
+        abort(401, f'invalid credential, credential={credential}')
 
     email = payload.get('email', '').strip()
     if not email:
-        abort(403, '"email" not exists')
+        abort(401, '"email" not exists')
     if isinstance(validators.email(email), ValidationFailure):
-        abort(403, f'invalid "email", email={email}')
+        abort(401, f'invalid "email", email={email}')
 
     name = payload.get('name', '').strip()
     avatar = payload.get('picture', '').strip()
