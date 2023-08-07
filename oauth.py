@@ -11,6 +11,7 @@ from uuid import uuid4
 
 from Crypto.Cipher import AES
 from jwt import PyJWKClient
+from jwt.exceptions import ExpiredSignatureError
 from quart import abort
 from validators import ValidationFailure
 
@@ -71,18 +72,31 @@ def decrypt_user_token(token: str, secret: str = '') -> TokenInfo:
     return TokenInfo(**json.loads(info))
 
 
-async def upsert_user_from_google_oauth(credential: str, user_token: str = '') -> User:
+async def upsert_user_from_google_oauth(
+    credential: str,
+    user_token: str = '',
+    verify_exp: bool = False,
+) -> User:
     payload: dict = {}
+    latest_err: Optional[Exception] = None
 
     client_ids = rds.smembers(GOOGLE_OAUTH_CLIENT_IDS)
     for cid in client_ids:
         try:
-            payload = _decode_google_oauth_credential(credential, cid.decode())
-        except Exception:
+            payload = _decode_google_oauth_credential(
+                credential=credential,
+                client_id=cid.decode(),
+                verify_exp=verify_exp,
+            )
+        except Exception as e:
             logger.exception('_decode_google_oauth_credential')
+            latest_err = e
             pass  # DO NOTHING.
+
     if not payload:
-        abort(403, f'invalid credential "aud", credential={credential}')
+        if isinstance(latest_err, ExpiredSignatureError):
+            abort(401, f'credential has expired, credential={credential}')
+        abort(403, f'invalid credential, credential={credential}')
 
     email = payload.get('email', '').strip()
     if not email:
@@ -96,9 +110,9 @@ async def upsert_user_from_google_oauth(credential: str, user_token: str = '') -
 
     user: Optional[User] = None
     if user_token:  # first priority.
-        user = find_user_by_token(user_token)
+        user = await find_user_by_token(user_token)
     if not user:  # second priority.
-        user = find_user_by_email(email)
+        user = await find_user_by_email(email)
 
     if not user:  # is new user.
         user_id = str(uuid4())
@@ -125,7 +139,11 @@ async def upsert_user_from_google_oauth(credential: str, user_token: str = '') -
 
 # https://developers.google.com/identity/gsi/web/guides/verify-google-id-token
 # https://pyjwt.readthedocs.io/en/stable/usage.html#retrieve-rsa-signing-keys-from-a-jwks-endpoint
-def _decode_google_oauth_credential(credential: str, client_id: str) -> dict:
+def _decode_google_oauth_credential(
+    credential: str,
+    client_id: str,
+    verify_exp: bool = False,
+) -> dict:
     signing_key = _google_jwk_client.get_signing_key_from_jwt(credential)
     return jwt.decode(
         jwt=credential,
@@ -133,4 +151,5 @@ def _decode_google_oauth_credential(credential: str, client_id: str) -> dict:
         algorithms=['RS256'],
         audience=client_id,
         issuer='https://accounts.google.com',
+        options={'verify_exp': verify_exp},
     )

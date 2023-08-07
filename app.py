@@ -88,6 +88,7 @@ async def register():
 # {
 #   'credential': required; str.
 #   'user_token': optional; str.
+#   'verify_exp': optional; boolean.
 # }
 @app.post('/api/user/oauth/google')
 async def google_oauth():
@@ -96,6 +97,7 @@ async def google_oauth():
     user = await upsert_user_from_google_oauth(
         credential=_parse_str_from_dict(body, 'credential'),
         user_token=_parse_str_from_dict(body, 'user_token', required=False),
+        verify_exp=bool(body.get('verify_exp', False)),
     )
 
     return asdict(user)
