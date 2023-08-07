@@ -14,6 +14,7 @@ from jwt import PyJWKClient
 from quart import abort
 from validators import ValidationFailure
 
+from logger import logger
 from mongo.users import User, Token, TokenInfo, \
     find_user_by_email, \
     find_user_by_token, \
@@ -78,6 +79,7 @@ async def upsert_user_from_google_oauth(credential: str, user_token: str = '') -
         try:
             payload = _decode_google_oauth_credential(credential, cid.decode())
         except Exception:
+            logger.exception('_decode_google_oauth_credential')
             pass  # DO NOTHING.
     if not payload:
         abort(403, f'invalid credential "aud", credential={credential}')
