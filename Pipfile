@@ -17,6 +17,7 @@ python-dateutil = "*"
 async-lru = "*"
 httpx = "*"
 tenacity = "*"
+cryptography = "*"
 
 [dev-packages]
 autopep8 = "*"
