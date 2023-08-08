@@ -81,7 +81,7 @@ async def insert_subscription_payment(payment: dict):
     await subscription_payments.insert_one(payment)
 
 
-@alru_cache()
+@alru_cache(ttl=10)
 async def find_latest_subscription(
     user_id: str,
     store_id: str,

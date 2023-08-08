@@ -46,7 +46,7 @@ async def insert_order(order: dict):
     find_latest_order.cache_clear()
 
 
-@alru_cache()
+@alru_cache(ttl=10)
 async def find_latest_order(
     user_id: str,
     store_id: str,

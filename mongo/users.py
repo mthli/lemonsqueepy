@@ -49,7 +49,7 @@ async def find_user_by_token(token: str) -> Optional[User]:
     return await _find_user_by_('token', token)
 
 
-@alru_cache()
+@alru_cache(ttl=10)
 async def _find_user_by_(key: str, value: str) -> Optional[User]:
     res: dict = await users.find_one({key: value})
     if not res:

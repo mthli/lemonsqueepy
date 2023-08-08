@@ -51,7 +51,7 @@ async def insert_license(license: dict):
 # Based on the upper API specs,
 # the `license_key` is unique in all stores,
 # so we just need to check the user ownership.
-@alru_cache()
+@alru_cache(ttl=10)
 async def find_latest_license(
     user_id: str,
     license_key: str,
