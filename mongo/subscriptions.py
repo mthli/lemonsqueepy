@@ -113,7 +113,7 @@ def convert_subscription_to_response(subscription: dict) -> dict:
     created_at = convert_datetime_to_isoformat_with_z(created_at)
 
     updated_at = subscription['data']['attributes']['updated_at']
-    created_at = convert_datetime_to_isoformat_with_z(updated_at)
+    updated_at = convert_datetime_to_isoformat_with_z(updated_at)
 
     return {
         'available': status == str(Status.ON_TRIAL) or status == str(Status.ACTIVE),

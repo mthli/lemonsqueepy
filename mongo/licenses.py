@@ -81,7 +81,7 @@ def convert_license_to_response(license: dict) -> dict:
     created_at = convert_datetime_to_isoformat_with_z(created_at)
 
     updated_at = license['data']['attributes']['updated_at']
-    created_at = convert_datetime_to_isoformat_with_z(updated_at)
+    updated_at = convert_datetime_to_isoformat_with_z(updated_at)
 
     return {
         'available': status == str(Status.ACTIVE),

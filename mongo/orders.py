@@ -79,7 +79,7 @@ def convert_order_to_response(order: dict) -> dict:
     created_at = convert_datetime_to_isoformat_with_z(created_at)
 
     updated_at = order['data']['attributes']['updated_at']
-    created_at = convert_datetime_to_isoformat_with_z(updated_at)
+    updated_at = convert_datetime_to_isoformat_with_z(updated_at)
 
     return {
         'available': status == str(Status.PAID),
