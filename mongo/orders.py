@@ -51,7 +51,7 @@ async def find_latest_order(
     user_id: str,
     store_id: str,
     product_id: str,
-    variant_id: str = '1',  # as the "default" variant.
+    variant_id: str,
     test_mode: bool = False,
 ) -> Optional[dict]:
     cursor = orders \

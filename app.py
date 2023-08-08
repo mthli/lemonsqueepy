@@ -129,14 +129,14 @@ async def lemonsqueezy_webhooks():
 # ?user_token=str  required.
 # &store_id=str    required.
 # &product_id=str  required.
-# &variant_id=str  optional; default is '1'.
+# &variant_id=str  required.
 # &test_mode=bool  optional; default is `false`.
 @app.get('/api/orders/check')
 async def check_order():
     user_token = _parse_str_from_dict(request.args, 'user_token')
     store_id = _parse_str_from_dict(request.args, 'store_id')
     product_id = _parse_str_from_dict(request.args, 'product_id')
-    variant_id = _parse_str_from_dict(request.args, 'variant_id', default='1', required=False)  # nopep8.
+    variant_id = _parse_str_from_dict(request.args, 'variant_id')
     test_mode = request.args.get('test_mode', False, bool)
 
     res = await find_latest_order(
@@ -156,14 +156,14 @@ async def check_order():
 # ?user_token=str  required.
 # &store_id=str    required.
 # &product_id=str  required.
-# &variant_id=str  optional; default is '1'.
+# &variant_id=str  required.
 # &test_mode=bool  optional; default is `false`.
 @app.get('/api/subscriptions/check')
 async def check_subscription():
     user_token = _parse_str_from_dict(request.args, 'user_token')
     store_id = _parse_str_from_dict(request.args, 'store_id')
     product_id = _parse_str_from_dict(request.args, 'product_id')
-    variant_id = _parse_str_from_dict(request.args, 'variant_id', default='1', required=False)  # nopep8.
+    variant_id = _parse_str_from_dict(request.args, 'variant_id')
     test_mode = request.args.get('test_mode', False, bool)
 
     res = await find_latest_subscription(
