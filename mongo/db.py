@@ -37,19 +37,21 @@ def convert_id_to_str_in_json(data: Any):
 
 
 # Assume that `data` is created from `json.loads()`,
-# convert all ISO-8601 formatted date-time string fields to datetime type,
+# convert all ISO-8601 formatted date-time `_at` fields to datetime type,
 # so we don't need to use MongoDB Aggregation Operations in those fields.
 #
 # Same as:
 # https://pymongo.readthedocs.io/en/stable/examples/datetimes.html
-def convert_fields_to_datetime_in_json(data: Any):
+def convert_at_to_datetime_in_json(data: Any):
     if isinstance(data, list):
         for item in data:
-            convert_fields_to_datetime_in_json(item)
+            convert_at_to_datetime_in_json(item)
     elif isinstance(data, dict):
         for key, value in data.items():
-            if not isinstance(value, str):
-                convert_fields_to_datetime_in_json(value)
+            if not isinstance(key, str):
+                raise TypeError(f'key must be string instead of {type(key)}')
+            if not isinstance(value, str) or not key.endswith('_at'):
+                convert_at_to_datetime_in_json(value)
                 continue
             try:
                 data[key] = parser.isoparse(value)

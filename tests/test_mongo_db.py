@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from mongo.db import convert_id_to_str_in_json, \
-    convert_fields_to_datetime_in_json
+    convert_at_to_datetime_in_json
 
 
 def test_convert_id_to_str_in_json():
@@ -24,17 +24,21 @@ def test_convert_id_to_str_in_json():
     assert isinstance(data['l'][0]['d']['user_id'], str)
 
 
-def test_convert_fields_to_datetime_in_json():
+def test_convert_at_to_datetime_in_json():
     data = {
         'l': [{
             'd': {
-                't': '2023-01-17T12:26:23.000000Z',
-                's': '...',
+                't1': '2023-01-17T12:26:23.000000Z',
+                't1_at': '2023-01-17T12:26:23.000000Z',
+                't2_at': 1691487612,
+                't3_at': '...',
             },
         }],
     }
 
-    convert_fields_to_datetime_in_json(data)
+    convert_at_to_datetime_in_json(data)
 
-    assert isinstance(data['l'][0]['d']['t'], datetime)
-    assert isinstance(data['l'][0]['d']['s'], str)
+    assert isinstance(data['l'][0]['d']['t1'], str)
+    assert isinstance(data['l'][0]['d']['t1_at'], datetime)
+    assert isinstance(data['l'][0]['d']['t2_at'], int)
+    assert isinstance(data['l'][0]['d']['t3_at'], str)

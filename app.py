@@ -15,7 +15,7 @@ from lemon import check_signing_secret, \
     activate_license as activate_license_internal
 from logger import logger
 from mongo.db import convert_id_to_str_in_json, \
-    convert_fields_to_datetime_in_json
+    convert_at_to_datetime_in_json
 from mongo.licenses import setup_licenses, \
     find_latest_license, \
     convert_license_to_response
@@ -121,7 +121,7 @@ async def lemonsqueezy_webhooks():
 
     event = parse_event(request.headers)
     convert_id_to_str_in_json(body)
-    convert_fields_to_datetime_in_json(body)
+    convert_at_to_datetime_in_json(body)
     await dispatch_event(event, body)
 
     return {}  # 200.
