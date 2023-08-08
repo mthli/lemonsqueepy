@@ -178,7 +178,7 @@ async def check_subscription():
     if not res:
         abort(404, 'subscription not found')
 
-    return await convert_subscription_to_response(res)
+    return convert_subscription_to_response(res)
 
 
 # ?user_token=str   required.
@@ -199,7 +199,7 @@ async def check_license():
     if not res:
         abort(404, 'license not found')
 
-    return await convert_license_to_response(res)
+    return convert_license_to_response(res)
 
 
 # {
@@ -236,7 +236,7 @@ async def activate_license():
         abort(404, 'license not found')
 
     res = await activate_license_internal(license_key, instance_name)
-    return await convert_license_to_response(res)
+    return convert_license_to_response(res)
 
 
 def _parse_str_from_dict(

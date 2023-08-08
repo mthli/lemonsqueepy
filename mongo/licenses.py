@@ -4,8 +4,7 @@ from typing import Optional
 from async_lru import alru_cache
 from strenum import StrEnum
 
-from mongo.db import licenses, orders, \
-    convert_datetime_to_isoformat_with_z
+from mongo.db import licenses, convert_datetime_to_isoformat_with_z
 
 
 @unique
@@ -73,22 +72,8 @@ async def find_latest_license(
     return res[0] if res else None
 
 
-async def find_license_receipt(license: dict) -> str:
-    store_id = license['data']['attributes']['store_id']
-    order_id = license['data']['attributes']['order_id']
-
-    order = await orders.find_one({
-        'data.id': order_id,
-        'data.attributes.store_id': store_id,
-    })
-
-    return order['data']['attributes']['urls']['receipt'] if order else ''
-
-
-async def convert_license_to_response(license: dict) -> dict:
+def convert_license_to_response(license: dict) -> dict:
     status = license['data']['attributes']['status']
-    receipt = await find_license_receipt(license)
-
     activation_limit = license['data']['attributes']['activation_limit']
     instances_count = license['data']['attributes']['instances_count']
 
@@ -101,7 +86,6 @@ async def convert_license_to_response(license: dict) -> dict:
     return {
         'available': status == str(Status.ACTIVE),
         'status': status,
-        'receipt': receipt,
         'activation_limit': activation_limit,
         'instances_count': instances_count,
         'created_at': created_at,

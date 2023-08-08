@@ -4,8 +4,7 @@ from typing import Optional
 from async_lru import alru_cache
 from strenum import StrEnum
 
-from mongo.db import orders, \
-    subscriptions, \
+from mongo.db import subscriptions, \
     subscription_payments, \
     convert_datetime_to_isoformat_with_z
 
@@ -107,41 +106,8 @@ async def find_latest_subscription(
     return res[0] if res else None
 
 
-async def find_subscription_invoice_url(subscription: dict) -> str:
-    store_id = subscription['data']['attributes']['store_id']
-    subscription_id = subscription['data']['id']
-
-    payment = await subscription_payments.find_one({
-        'data.attributes.store_id': store_id,
-        'data.attributes.subscription_id': subscription_id,
-    })
-
-    return payment['data']['attributes']['urls']['invoice_url'] if payment else ''
-
-
-async def find_subscription_receipt(subscription: dict) -> str:
-    store_id = subscription['data']['attributes']['store_id']
-    order_id = subscription['data']['attributes']['order_id']
-
-    order = await orders.find_one({
-        'data.id': order_id,
-        'data.attributes.store_id': store_id,
-    })
-
-    return order['data']['attributes']['urls']['receipt'] if order else ''
-
-
-async def convert_subscription_to_response(subscription: dict) -> dict:
+def convert_subscription_to_response(subscription: dict) -> dict:
     status = subscription['data']['attributes']['status']
-    receipt = await find_subscription_receipt(subscription)
-    invoice_url = await find_subscription_invoice_url(subscription)
-
-    # FIXME (Matthew Lee)
-    # https://docs.lemonsqueezy.com/api/subscriptions#the-subscription-object
-    #
-    # The doc says that the URL is valid for 24 hours from time of request,
-    # but what the "time of request" means?
-    update_payment_method = subscription['data']['attributes']['urls']['update_payment_method']
 
     created_at = subscription['data']['attributes']['created_at']
     created_at = convert_datetime_to_isoformat_with_z(created_at)
@@ -152,9 +118,6 @@ async def convert_subscription_to_response(subscription: dict) -> dict:
     return {
         'available': status == str(Status.ON_TRIAL) or status == str(Status.ACTIVE),
         'status': status,
-        'receipt': receipt,
-        'invoice_url': invoice_url,
-        'update_payment_method': update_payment_method,
         'created_at': created_at,
         'updated_at': updated_at,
     }

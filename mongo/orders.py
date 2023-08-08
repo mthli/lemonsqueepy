@@ -74,7 +74,6 @@ async def find_latest_order(
 
 def convert_order_to_response(order: dict) -> dict:
     status = order['data']['attributes']['status']
-    receipt = order['data']['attributes']['urls']['receipt']
 
     created_at = order['data']['attributes']['created_at']
     created_at = convert_datetime_to_isoformat_with_z(created_at)
@@ -85,7 +84,6 @@ def convert_order_to_response(order: dict) -> dict:
     return {
         'available': status == str(Status.PAID),
         'status': status,
-        'receipt': receipt,
         'created_at': created_at,
         'updated_at': updated_at,
     }
