@@ -131,8 +131,8 @@ async def lemonsqueezy_webhooks():
 # &product_id=str  required.
 # &variant_id=str  optional; default is '1'.
 # &test_mode=bool  optional; default is `false`.
-@app.get('/api/orders/latest')
-async def check_latest_order():
+@app.get('/api/orders/check')
+async def check_order():
     user_token = _parse_str_from_dict(request.args, 'user_token')
     store_id = _parse_str_from_dict(request.args, 'store_id')
     product_id = _parse_str_from_dict(request.args, 'product_id')
@@ -158,8 +158,8 @@ async def check_latest_order():
 # &product_id=str  required.
 # &variant_id=str  optional; default is '1'.
 # &test_mode=bool  optional; default is `false`.
-@app.get('/api/subscriptions/latest')
-async def check_latest_subscription():
+@app.get('/api/subscriptions/check')
+async def check_subscription():
     user_token = _parse_str_from_dict(request.args, 'user_token')
     store_id = _parse_str_from_dict(request.args, 'store_id')
     product_id = _parse_str_from_dict(request.args, 'product_id')
@@ -183,8 +183,8 @@ async def check_latest_subscription():
 # ?user_token=str   required.
 # &license_key=str  required.
 # &test_mode=bool   optional; default is `false`.
-@app.get('/api/licenses/latest')
-async def check_latest_license():
+@app.get('/api/licenses/check')
+async def check_license():
     user_token = _parse_str_from_dict(request.args, 'user_token')
     license_key = _parse_str_from_dict(request.args, 'license_key')
     test_mode = request.args.get('test_mode', False, bool)
