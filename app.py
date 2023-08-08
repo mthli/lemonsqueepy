@@ -1,6 +1,7 @@
 import json
 import time
 
+from distutils.util import strtobool
 from dataclasses import asdict
 from uuid import uuid4
 
@@ -137,7 +138,7 @@ async def check_order():
     store_id = _parse_str_from_dict(request.args, 'store_id')
     product_id = _parse_str_from_dict(request.args, 'product_id')
     variant_id = _parse_str_from_dict(request.args, 'variant_id')
-    test_mode = request.args.get('test_mode', False, bool)
+    test_mode = bool(strtobool(request.args.get('test_mode', 'false')))
 
     res = await find_latest_order(
         user_id=decrypt_user_token(user_token).user_id,
@@ -164,7 +165,7 @@ async def check_subscription():
     store_id = _parse_str_from_dict(request.args, 'store_id')
     product_id = _parse_str_from_dict(request.args, 'product_id')
     variant_id = _parse_str_from_dict(request.args, 'variant_id')
-    test_mode = request.args.get('test_mode', False, bool)
+    test_mode = bool(strtobool(request.args.get('test_mode', 'false')))
 
     res = await find_latest_subscription(
         user_id=decrypt_user_token(user_token).user_id,
@@ -187,7 +188,7 @@ async def check_subscription():
 async def check_license():
     user_token = _parse_str_from_dict(request.args, 'user_token')
     license_key = _parse_str_from_dict(request.args, 'license_key')
-    test_mode = request.args.get('test_mode', False, bool)
+    test_mode = bool(strtobool(request.args.get('test_mode', 'false')))
 
     res = await find_latest_license(
         user_id=decrypt_user_token(user_token).user_id,
