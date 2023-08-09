@@ -181,17 +181,14 @@ async def check_subscription():
     return convert_subscription_to_response(res)
 
 
-# ?user_token=str   required.
-# &license_key=str  required.
+# ?license_key=str  required.
 # &test_mode=bool   optional; default is `false`.
 @app.get('/api/licenses/check')
 async def check_license():
-    user_token = _parse_str_from_dict(request.args, 'user_token')
     license_key = _parse_str_from_dict(request.args, 'license_key')
     test_mode = bool(strtobool(request.args.get('test_mode', 'false')))
 
     res = await find_latest_license(
-        user_id=decrypt_user_token(user_token).user_id,
         license_key=license_key,
         test_mode=test_mode,
     )
