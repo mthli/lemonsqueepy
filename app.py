@@ -200,7 +200,6 @@ async def check_license():
 
 
 # {
-#   'user_token':    required; str.
 #   'license_key':   required; str.
 #   'instance_name': optional; str.
 #   'test_mode':     optional; bool, default is `false`.
@@ -211,7 +210,6 @@ async def activate_license():
     body: dict = await request.get_json() or {}
     logger.info(f'/api/licenses/activate, body={json.dumps(body)}')
 
-    user_token = _parse_str_from_dict(body, 'user_token')
     license_key = _parse_str_from_dict(body, 'license_key')
     test_mode = bool(body.get('test_mode', False))
 
@@ -222,9 +220,7 @@ async def activate_license():
         required=False,
     )
 
-    # Check the user ownership.
     res = await find_latest_license(
-        user_id=decrypt_user_token(user_token).user_id,
         license_key=license_key,
         test_mode=test_mode,
     )
