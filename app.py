@@ -201,8 +201,7 @@ async def check_license():
 
 # {
 #   'license_key':   required; str.
-#   'instance_name': optional; str.
-#   'test_mode':     optional; bool, default is `false`.
+#   'instance_name': required; str.
 # }
 @app.post('/api/licenses/activate')
 async def activate_license():
@@ -211,22 +210,7 @@ async def activate_license():
     logger.info(f'/api/licenses/activate, body={json.dumps(body)}')
 
     license_key = _parse_str_from_dict(body, 'license_key')
-    test_mode = bool(body.get('test_mode', False))
-
-    instance_name = _parse_str_from_dict(
-        data=body,
-        key='instance_name',
-        default=str(int(time.time())),  # activate timestamp in seconds.
-        required=False,
-    )
-
-    res = await find_latest_license(
-        license_key=license_key,
-        test_mode=test_mode,
-    )
-
-    if not res:
-        abort(404, 'license not found')
+    instance_name = _parse_str_from_dict(body, 'instance_name')
 
     res = await activate_license_internal(license_key, instance_name)
     return convert_license_to_response(res)
