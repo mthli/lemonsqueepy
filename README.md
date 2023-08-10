@@ -79,5 +79,4 @@ pm2 start ./pm2.json
 BSD 3-Clause License
 
 Copyright (c) 2023, Matthew Lee
-All rights reserved.
 ```
