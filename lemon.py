@@ -118,8 +118,13 @@ async def activate_license(
     finally:
         await client.aclose()
 
+    # https://docs.lemonsqueezy.com/help/licensing/license-api#errors
     if not response.is_success:
-        abort(response.status_code, response.text)
+        if response.status_code == 400:
+            data: dict = response.json()
+            abort(response.status_code, data['error'])
+        else:  # 404 or 422.
+            abort(response.status_code, response.text)
 
     # Automatically .aclose() if the response body is read to completion.
     data: dict = response.json()
