@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any
+from typing import Any, Union
 
 from dateutil import parser
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -60,5 +60,7 @@ def convert_at_to_datetime_in_json(data: Any):
 
 
 # https://stackoverflow.com/a/42777551
-def convert_datetime_to_isoformat_with_z(dt: datetime) -> str:
+def convert_datetime_to_isoformat_with_z(dt: Union[datetime, str]) -> str:
+    if isinstance(dt, str):
+        return dt
     return dt.isoformat().replace('+00:00', 'Z')

@@ -137,11 +137,11 @@ async def activate_license(
 
     # The `data` structure is not similar to webhooks request,
     # so we retrieve license again for later code reusing.
-    return await retrieve_license(license_key, api_key)
+    return await retrieve_license(str(data['license_key']['id']), api_key)
 
 
 # https://docs.lemonsqueezy.com/api/license-keys#retrieve-a-license-key
-async def retrieve_license(license_key: str, api_key: str = '') -> dict:
+async def retrieve_license(license_id: str, api_key: str = '') -> dict:
     if not api_key:
         api_key = get_str_from_rds(LEMONSQUEEZY_API_KEY)
 
@@ -156,7 +156,7 @@ async def retrieve_license(license_key: str, api_key: str = '') -> dict:
 
     try:
         response = await client.get(
-            url=f'https://api.lemonsqueezy.com/v1/license-keys/{license_key}',
+            url=f'https://api.lemonsqueezy.com/v1/license-keys/{license_id}',
             headers=headers,
             timeout=10,
             follow_redirects=True,
@@ -171,7 +171,7 @@ async def retrieve_license(license_key: str, api_key: str = '') -> dict:
     data: dict = response.json()
     logger.info(
         f'retrieve license, '
-        f'license_key={license_key}, '
+        f'license_id={license_id}, '
         f'body={json.dumps(data)}'
     )
 
