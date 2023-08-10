@@ -2,76 +2,49 @@
 
 [Lemon Squeezy](https://www.lemonsqueezy.com/) with Python 🐍
 
-## Deployment
+This project is an **account and payment** manage system for Web App,
+fills in the missing pieces for accessing Lemon Squeezy,
+significantly reduce your development costs.
 
-This project should be deployed in **Debian GNU/Linux 11 (bullseye).**
+Currently we already support these scenarios:
 
-First install dependencies as follow:
+- [x] Sign in with Google.
+- [x] Check order is available or not.
+- [x] Check subscription is available or not.
+- [x] Check license is available or not.
+- [x] Activate license.
 
-```bash
-# Install `nginx` if you don't have.
-sudo apt-get install nginx
-sudo systemd enable nginx
-sudo systemd start nginx
+You can use it as:
 
-# Install `redis` if you don't have.
-sudo apt-get install redis
-sudo systemd enable redis
-sudo systemd start redis
+- A standalone service (recommend), and make HTTP requests from your front-end application.
+- A standalone service (recommend), and make RPC requests from other services (Node.js, Go, etc.).
+- A Python web framework, and develop some busniess logical based on it.
 
-# Install `mongodb-org` if you don't have.
-# https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-debian/
-sudo apt-get install gnupg curl
-curl -fsSL https://pgp.mongodb.com/server-6.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-6.0.gpg --dearmor
-echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-6.0.gpg] http://repo.mongodb.org/apt/debian bullseye/mongodb-org/6.0 main" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
-sudo apt-get update
-sudo apt-get install -y mongodb-org
-sudo systemctl enable mongod
-sudo systemctl start mongod
+[For more details and tutorials, please checkout the Wiki](https://github.com/mthli/lemonsqueepy/wiki).
 
-# Install `certbot` if you don't have.
-sudo apt-get install certbot
-sudo apt-get install python3-certbot-nginx
+If you want to experience or support this project, please make an order or subscription in the [demo page](https://lemontree.vercel.app/).
 
-# Install `pm2` if you don't have.
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
-nvm install node # restart your bash, then
-npm install -g pm2
-pm2 install pm2-logrotate
+---
 
-# Install `python3` if you don't have.
-sudo apt-get install python3
-sudo apt-get install python3-pip
+本项目是一个为 Web App 设计的 **帐号和支付** 管理系统，可以显著降低你接入 Lemon Squeezy 的开发成本。
 
-# Install `pyenv` if you don't have.
-# https://github.com/pyenv/pyenv#automatic-installer
-curl https://pyenv.run | bash
+目前我们已经支持如下场景：
 
-# Install `pipenv` if you don't have.
-pip install --user pipenv
+- [x] 谷歌登录。
+- [x] 校验订单是否可用。
+- [x] 校验订阅是否可用。
+- [x] 校验证书是否可用。
+- [x] 激活证书。
 
-# Install all dependencies needed by this project.
-git clone git@github.com:mthli/lemonsqueepy.git
-cd ./lemonsqueepy/
-pipenv install
-pipenv install --dev
-```
+你可以将这个项目用于：
 
-Before run this project:
+- 一个独立的服务（推荐），并从你的前端应用中直接发起 HTTP 请求。
+- 一个独立的服务（推荐），并从 Node.js 或者 Go 等语言实现的后端服务中发起 RPC 请求。
+- 一个 Python 网络框架，并在其中添加自己的业务逻辑。
 
-- Add `google_oauth_client_ids` defined in `./rds.py` with `redis-cli`
-- Set `lemonsqueezy_signing_secret` defined in `./rds.py` with `redis-cli`
-- Set `lemonsqueezy_api_key` defined in `./rds.py` with `redis-cli`
-- Put `./lemon.mthli.com.conf` to `/etc/nginx/conf.d/` directory.
-- Execute `sudo certbot --nginx -d lemon.mthli.com` to generate certificates, or
-- Execute `sudo certbot renew` to avoid certificates expired after 90 days.
+[更多详细信息和教程，请参阅 Wiki 链接](https://github.com/mthli/lemonsqueepy/wiki)。
 
-Then just execute commands as follow:
-
-```bash
-# Make sure you are not in pipenv shell.
-pm2 start ./pm2.json
-```
+如果你想体验或者支持本项目，请在 [示例页面](https://lemontree.vercel.app/) 下单或者发起订阅。
 
 ## License
 
