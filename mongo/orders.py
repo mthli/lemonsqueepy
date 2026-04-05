@@ -12,6 +12,8 @@ class Status(StrEnum):
     PAID = 'paid'
     FAILED = 'failed'
     REFUNDED = 'refunded'
+    PARTIAL_REFUND = 'partial_refund'
+    FRAUDULENT = 'fraudulent'
 
 
 async def setup_orders():
@@ -31,12 +33,13 @@ async def setup_orders():
     await orders.create_index('data.attributes.first_order_item.product_id', background=True)  # nopep8; str, as the `product_id`.
     await orders.create_index('data.attributes.first_order_item.variant_id', background=True)  # nopep8; str, as the `variant_id`.
 
+    await orders.create_index('data.attributes.test_mode', background=True)    # nopep8; bool.
     await orders.create_index('data.attributes.created_at', background=True)   # nopep8; datetime.
     await orders.create_index('data.attributes.updated_at', background=True)   # nopep8; datetime.
 
 
-# https://docs.lemonsqueezy.com/api/orders#the-order-object
-# https://docs.lemonsqueezy.com/help/webhooks#example-payloads
+# https://docs.lemonsqueezy.com/api/orders/the-order-object
+# https://docs.lemonsqueezy.com/help/webhooks/example-payloads
 #
 # You will notice that the `data` in the payload is the order object,
 # plus some `meta` and the usual `relationships` and `links`.
