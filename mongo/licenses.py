@@ -30,12 +30,13 @@ async def setup_licenses():
     await licenses.create_index('data.attributes.key_short', background=True)      # nopep8; str.
     await licenses.create_index('data.attributes.status', background=True)         # nopep8; str.
 
+    await licenses.create_index('data.attributes.test_mode', background=True)      # nopep8; bool.
     await licenses.create_index('data.attributes.created_at', background=True)     # nopep8; datetime.
     await licenses.create_index('data.attributes.updated_at', background=True)     # nopep8; datetime.
 
 
-# https://docs.lemonsqueezy.com/api/license-keys#the-license-key-object
-# https://docs.lemonsqueezy.com/help/webhooks#example-payloads
+# https://docs.lemonsqueezy.com/api/license-keys/the-license-key-object
+# https://docs.lemonsqueezy.com/help/webhooks/example-payloads
 #
 # You will notice that the `data` in the payload is the order object,
 # plus some `meta` and the usual `relationships` and `links`.
@@ -45,7 +46,7 @@ async def insert_license(license: dict):
 
 
 # Based on the upper API specs, the `license_key` is unique in all stores.
-# https://docs.lemonsqueezy.com/api/license-keys#retrieve-a-license-key
+# https://docs.lemonsqueezy.com/api/license-keys/retrieve-license-key
 @alru_cache(ttl=10)
 async def find_latest_license(
     license_key: str,
