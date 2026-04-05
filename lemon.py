@@ -18,7 +18,7 @@ from rds import get_str_from_rds, \
     LEMONSQUEEZY_API_KEY
 
 
-# https://docs.lemonsqueezy.com/help/webhooks#event-types
+# https://docs.lemonsqueezy.com/help/webhooks/event-types
 @unique
 class Event(StrEnum):
     ORDER_CREATED = 'order_created'
@@ -37,7 +37,7 @@ class Event(StrEnum):
     LICENSE_KEY_UPDATED = 'license_key_updated'
 
 
-# https://docs.lemonsqueezy.com/help/webhooks#signing-requests
+# https://docs.lemonsqueezy.com/help/webhooks/signing-requests
 def check_signing_secret(headers: Headers, body: bytes, secret: str = ''):
     signature = headers.get(key='X-Signature', default='', type=str)
     if not signature:
@@ -52,7 +52,7 @@ def check_signing_secret(headers: Headers, body: bytes, secret: str = ''):
         abort(400, f'invalid "X-Signature", signature={signature}')
 
 
-# https://docs.lemonsqueezy.com/help/webhooks#webhook-requests
+# https://docs.lemonsqueezy.com/help/webhooks/webhook-requests
 def parse_event(headers: Headers) -> Event:
     event = headers.get(key='X-Event-Name', default='', type=str)
     if not event:
@@ -64,7 +64,7 @@ def parse_event(headers: Headers) -> Event:
         abort(400, f'invalid "X-Event-Name", event={event}')
 
 
-# https://docs.lemonsqueezy.com/help/webhooks#webhook-requests
+# https://docs.lemonsqueezy.com/help/webhooks/event-types
 async def dispatch_event(event: Event, body: dict):
     if str(event).startswith('order_'):
         await insert_order(body)
@@ -78,7 +78,7 @@ async def dispatch_event(event: Event, body: dict):
         abort(400, f'unsupported event, event={str(event)}')
 
 
-# https://docs.lemonsqueezy.com/help/licensing/license-api#post-v1-licenses-activate
+# https://docs.lemonsqueezy.com/api/license-api/activate-license-key
 #
 # FIXME (Matthew Lee)
 # API calls are rate limited to 60 / minute,
@@ -117,7 +117,7 @@ async def activate_license(
     finally:
         await client.aclose()
 
-    # https://docs.lemonsqueezy.com/help/licensing/license-api#errors
+    # https://docs.lemonsqueezy.com/api/license-api#errors
     if not response.is_success:
         if response.status_code == 400:
             data: dict = response.json()
@@ -139,7 +139,7 @@ async def activate_license(
     return await retrieve_license(str(data['license_key']['id']), api_key)
 
 
-# https://docs.lemonsqueezy.com/api/license-keys#retrieve-a-license-key
+# https://docs.lemonsqueezy.com/api/license-keys/retrieve-license-key
 async def retrieve_license(license_id: str, api_key: str = '') -> dict:
     if not api_key:
         api_key = get_str_from_rds(LEMONSQUEEZY_API_KEY)
