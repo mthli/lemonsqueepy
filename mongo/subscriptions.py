@@ -41,6 +41,7 @@ async def setup_subscriptions():
     await subscriptions.create_index('data.attributes.user_email', background=True)     # nopep8; str.
     await subscriptions.create_index('data.attributes.status', background=True)         # nopep8; str.
 
+    await subscriptions.create_index('data.attributes.test_mode', background=True)      # nopep8; bool.
     await subscriptions.create_index('data.attributes.created_at', background=True)     # nopep8; datetime.
     await subscriptions.create_index('data.attributes.updated_at', background=True)     # nopep8; datetime.
 
@@ -60,8 +61,8 @@ async def setup_subscription_payments():
     await subscription_payments.create_index('data.attributes.updated_at', background=True)       # nopep8; datetime.
 
 
-# https://docs.lemonsqueezy.com/api/subscriptions#the-subscription-object
-# https://docs.lemonsqueezy.com/help/webhooks#example-payloads
+# https://docs.lemonsqueezy.com/api/subscriptions/the-subscription-object
+# https://docs.lemonsqueezy.com/help/webhooks/example-payloads
 #
 # You will notice that the `data` in the payload is the subscription object,
 # plus some `meta` and the usual `relationships` and `links`.
@@ -70,8 +71,8 @@ async def insert_subscription(subscription: dict):
     find_latest_subscription.cache_clear()
 
 
-# https://docs.lemonsqueezy.com/api/subscription-invoices#the-subscription-invoice-object
-# https://docs.lemonsqueezy.com/help/webhooks#example-payloads
+# https://docs.lemonsqueezy.com/api/subscription-invoices/the-subscription-invoice-object
+# https://docs.lemonsqueezy.com/help/webhooks/example-payloads
 #
 # You will notice that the `data` in the payload is the subscription invoice object,
 # plus some `meta` and the usual `relationships` and `links`.
