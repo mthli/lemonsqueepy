@@ -145,7 +145,7 @@ async def retrieve_license(license_id: str, api_key: str = '') -> dict:
         api_key = get_str_from_rds(LEMONSQUEEZY_API_KEY)
 
     headers = {
-        'Accept': 'application/json',
+        'Accept': 'application/vnd.api+json',
         'Content-Type': 'application/vnd.api+json',
         'Authorization': f'Bearer {api_key}',
     }
