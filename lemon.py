@@ -4,10 +4,9 @@ import json
 
 import httpx
 
-from enum import unique
+from enum import StrEnum, unique
 
 from quart import abort
-from strenum import StrEnum
 from werkzeug.datastructures import Headers
 
 from logger import logger

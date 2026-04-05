@@ -1,7 +1,6 @@
 import json
 import time
 
-from distutils.util import strtobool
 from dataclasses import asdict
 from uuid import uuid4
 
@@ -138,7 +137,7 @@ async def check_order():
     store_id = _parse_str_from_dict(request.args, 'store_id')
     product_id = _parse_str_from_dict(request.args, 'product_id')
     variant_id = _parse_str_from_dict(request.args, 'variant_id')
-    test_mode = bool(strtobool(request.args.get('test_mode', 'false')))
+    test_mode = bool(_strtobool(request.args.get('test_mode', 'false')))
 
     res = await find_latest_order(
         user_id=decrypt_user_token(user_token).user_id,
@@ -165,7 +164,7 @@ async def check_subscription():
     store_id = _parse_str_from_dict(request.args, 'store_id')
     product_id = _parse_str_from_dict(request.args, 'product_id')
     variant_id = _parse_str_from_dict(request.args, 'variant_id')
-    test_mode = bool(strtobool(request.args.get('test_mode', 'false')))
+    test_mode = bool(_strtobool(request.args.get('test_mode', 'false')))
 
     res = await find_latest_subscription(
         user_id=decrypt_user_token(user_token).user_id,
@@ -186,7 +185,7 @@ async def check_subscription():
 @app.get('/api/licenses/check')
 async def check_license():
     license_key = _parse_str_from_dict(request.args, 'license_key')
-    test_mode = bool(strtobool(request.args.get('test_mode', 'false')))
+    test_mode = bool(_strtobool(request.args.get('test_mode', 'false')))
 
     res = await find_latest_license(
         license_key=license_key,
@@ -233,3 +232,13 @@ def _parse_str_from_dict(
             abort(400, f'"{key}" must not empty')
 
     return value
+
+
+def _strtobool(val: str) -> bool:
+    val = val.strip().lower()
+    if val in ('y', 'yes', 't', 'true', 'on', '1'):
+        return True
+    elif val in ('n', 'no', 'f', 'false', 'off', '0'):
+        return False
+    else:
+        raise ValueError(f'invalid truth value {val!r}')

@@ -1,8 +1,7 @@
-from enum import unique
+from enum import StrEnum, unique
 from typing import Optional
 
 from async_lru import alru_cache
-from strenum import StrEnum
 
 from mongo.db import subscriptions, \
     subscription_payments, \

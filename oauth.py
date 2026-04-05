@@ -12,7 +12,7 @@ from uuid import uuid4
 from Crypto.Cipher import AES
 from jwt import PyJWKClient
 from quart import abort
-from validators import ValidationFailure
+from validators import ValidationError
 
 from logger import logger
 from mongo.users import User, Token, TokenInfo, \
@@ -96,7 +96,7 @@ async def upsert_user_from_google_oauth(
     email = payload.get('email', '').strip()
     if not email:
         abort(401, '"email" not exists')
-    if isinstance(validators.email(email), ValidationFailure):
+    if isinstance(validators.email(email), ValidationError):
         abort(401, f'invalid "email", email={email}')
 
     name = payload.get('name', '').strip()

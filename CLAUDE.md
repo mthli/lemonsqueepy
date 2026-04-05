@@ -69,7 +69,7 @@ All secrets are stored in Redis (`localhost:6379`), not in env vars or config fi
 
 ## Key Conventions
 
-- Python 3.9 target (per Pipfile).
+- Python 3.14 target (per Pipfile).
 - All database/HTTP operations are async (`await`).
 - MongoDB query functions use `@alru_cache(ttl=10)` for short-lived caching; cache is explicitly cleared after inserts/upserts.
 - Tests in `tests/` use pytest with pytest-asyncio. The `tests/__init__.py` file exists solely to fix `ModuleNotFoundError` with pytest imports.

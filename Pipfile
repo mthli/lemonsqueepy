@@ -9,7 +9,6 @@ motor = "*"
 quart = "*"
 quart-cors = "*"
 hypercorn = "*"
-strenum = "*"
 validators = "*"
 pyjwt = "*"
 pycryptodome = "*"
@@ -27,4 +26,4 @@ pytest-asyncio = "*"
 pytest-sugar = "*"
 
 [requires]
-python_version = "3.9"
+python_version = "3.14"
