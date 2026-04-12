@@ -2,7 +2,7 @@
   "apps": [
     {
       "name": "lemonsqueepy",
-      "script": "python3 -m pipenv run hypercorn app:app",
+      "script": "pipenv run hypercorn app:app",
       "exec_mode": "fork",
       "kill_timeout": 5000,
       "listen_timeout": 10000,
