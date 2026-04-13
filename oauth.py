@@ -102,14 +102,13 @@ def _decode_credential_payload(
     client_ids = rds.smembers(GOOGLE_OAUTH_CLIENT_IDS)
     for cid in client_ids:
         try:
-            payload = _decode_google_oauth_credential(
-                credential=credential,
-                client_id=cid.decode(),
+            payload = _decode_google_jwt(
+                token=credential,
+                audience=cid.decode(),
                 verify_exp=verify_exp,
             )
         except Exception as e:
             logger.exception('_decode_google_oauth_credential')
-            latest_err = e
             pass  # DO NOTHING.
     if not payload:
         abort(401, f'invalid credential, credential={credential}')
@@ -159,15 +158,7 @@ async def _exchange_authorization_code(
         abort(401, 'id_token not found in token response')
 
     try:
-        signing_key = _google_jwk_client.get_signing_key_from_jwt(id_token)
-        return jwt.decode(
-            jwt=id_token,
-            key=signing_key.key,
-            algorithms=['RS256'],
-            audience=client_id,
-            issuer='https://accounts.google.com',
-            options={'verify_exp': verify_exp},
-        )
+        return _decode_google_jwt(id_token, client_id, verify_exp)
     except Exception:
         logger.exception('_exchange_authorization_code')
         abort(401, 'invalid id_token in token response')
@@ -218,17 +209,17 @@ async def _upsert_user_from_payload(
 
 # https://developers.google.com/identity/gsi/web/guides/verify-google-id-token
 # https://pyjwt.readthedocs.io/en/stable/usage.html#retrieve-rsa-signing-keys-from-a-jwks-endpoint
-def _decode_google_oauth_credential(
-    credential: str,
-    client_id: str,
+def _decode_google_jwt(
+    token: str,
+    audience: str,
     verify_exp: bool = False,
 ) -> dict:
-    signing_key = _google_jwk_client.get_signing_key_from_jwt(credential)
+    signing_key = _google_jwk_client.get_signing_key_from_jwt(token)
     return jwt.decode(
-        jwt=credential,
+        jwt=token,
         key=signing_key.key,
         algorithms=['RS256'],
-        audience=client_id,
+        audience=audience,
         issuer='https://accounts.google.com',
         options={'verify_exp': verify_exp},
     )
