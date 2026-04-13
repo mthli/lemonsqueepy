@@ -8,7 +8,7 @@ from quart import abort
 # You may have multiple client ids, it's ok,
 # just execute `SADD google_oauth_client_ids "..."` in redis-cli.
 GOOGLE_OAUTH_CLIENT_IDS = 'google_oauth_client_ids'  # set.
-GOOGLE_OAUTH_CLIENT_SECRET = 'google_oauth_client_secret'  # string.
+GOOGLE_OAUTH_CLIENT_SECRETS = 'google_oauth_client_secrets'  # hash: client_id -> client_secret.
 
 # For checking whether the requests are sent from Lemon Squeezy.
 # https://docs.lemonsqueezy.com/help/webhooks#signing-requests

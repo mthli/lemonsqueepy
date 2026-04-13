@@ -60,7 +60,8 @@ Quart (async Flask-compatible) with Hypercorn ASGI server. CORS is globally enab
 All secrets are stored in Redis (`localhost:6379`), not in env vars or config files:
 - `lemonsqueezy_signing_secret` — 16-char string used both for webhook signature verification and AES-128 user token encryption
 - `lemonsqueezy_api_key` — Lemon Squeezy API bearer token
-- `google_oauth_client_ids` — Redis SET of allowed Google OAuth client IDs
+- `google_oauth_client_ids` — Redis SET of allowed Google OAuth client IDs (used by credential mode)
+- `google_oauth_client_secrets` — Redis HASH mapping client_id to client_secret (used by authorization_code mode)
 
 ### Authentication (`oauth.py`)
 - **Anonymous users**: `POST /api/user/register` generates a UUID + AES-encrypted token. All subsequent requests use `Authorization: Bearer <token>`.

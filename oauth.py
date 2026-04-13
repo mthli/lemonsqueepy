@@ -22,7 +22,7 @@ from mongo.users import User, Token, TokenInfo, \
     upsert_user
 from rds import rds, get_str_from_rds, \
     GOOGLE_OAUTH_CLIENT_IDS, \
-    GOOGLE_OAUTH_CLIENT_SECRET, \
+    GOOGLE_OAUTH_CLIENT_SECRETS, \
     LEMONSQUEEZY_SIGNING_SECRET
 
 # Unsupported asyncio for now.
@@ -123,7 +123,12 @@ async def _exchange_authorization_code(
     redirect_uri: str,
     verify_exp: bool = False,
 ) -> dict:
-    client_secret = get_str_from_rds(GOOGLE_OAUTH_CLIENT_SECRET)
+    client_secret = rds.hget(GOOGLE_OAUTH_CLIENT_SECRETS, client_id)
+    if not client_secret:
+        abort(401, f'unregistered client_id, client_id={client_id}')
+    client_secret = client_secret.decode().strip()
+    if not client_secret:
+        abort(401, f'empty client_secret for client_id={client_id}')
 
     transport = httpx.AsyncHTTPTransport(retries=2)
     client = httpx.AsyncClient(transport=transport)
