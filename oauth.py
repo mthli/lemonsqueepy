@@ -7,6 +7,7 @@ import validators
 
 from base64 import b64encode, b64decode
 from dataclasses import asdict
+from enum import Enum
 from typing import Optional
 from uuid import uuid4
 
@@ -24,6 +25,12 @@ from rds import rds, get_str_from_rds, \
     GOOGLE_OAUTH_CLIENT_IDS, \
     GOOGLE_OAUTH_CLIENT_SECRETS, \
     LEMONSQUEEZY_SIGNING_SECRET
+
+
+class GoogleOAuthMode(str, Enum):
+    CREDENTIAL = 'credential'
+    AUTHORIZATION_CODE = 'authorization_code'
+
 
 # Unsupported asyncio for now.
 _google_jwk_client = PyJWKClient(
@@ -74,7 +81,7 @@ def decrypt_user_token(token: str, secret: str = '') -> TokenInfo:
 
 
 async def upsert_user_from_google_oauth(
-    mode: str = 'credential',
+    mode: GoogleOAuthMode = GoogleOAuthMode.CREDENTIAL,
     credential: str = '',
     code: str = '',
     client_id: str = '',
@@ -82,9 +89,9 @@ async def upsert_user_from_google_oauth(
     user_token: str = '',
     verify_exp: bool = False,
 ) -> User:
-    if mode == 'credential':
+    if mode == GoogleOAuthMode.CREDENTIAL:
         payload = _decode_credential_payload(credential, verify_exp)
-    elif mode == 'authorization_code':
+    elif mode == GoogleOAuthMode.AUTHORIZATION_CODE:
         payload = await _exchange_authorization_code(code, client_id, redirect_uri, verify_exp)
     else:
         abort(400, f'unsupported mode, mode={mode}')

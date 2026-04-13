@@ -26,7 +26,8 @@ from mongo.subscriptions import setup_subscriptions, \
     find_latest_subscription, \
     convert_subscription_to_response
 from mongo.users import User, setup_users, upsert_user
-from oauth import generate_user_token, \
+from oauth import GoogleOAuthMode, \
+    generate_user_token, \
     decrypt_user_token, \
     upsert_user_from_google_oauth
 
@@ -97,26 +98,27 @@ async def register():
 @app.post('/api/user/oauth/google')
 async def google_oauth():
     body: dict = await request.get_json() or {}
-    mode = body.get('mode', 'credential')
+    try:
+        mode = GoogleOAuthMode(body.get('mode', 'credential'))
+    except ValueError:
+        abort(400, f'unsupported mode, mode={body.get("mode")}')
 
-    if mode == 'credential':
+    if mode == GoogleOAuthMode.CREDENTIAL:
         user = await upsert_user_from_google_oauth(
-            mode='credential',
+            mode=mode,
             credential=_parse_str_from_dict(body, 'credential'),
-            user_token=_parse_str_from_dict(body, 'user_token', required=False),
+            user_token=_parse_str_from_dict(body, 'user_token', required=False),  # nopep8.
             verify_exp=bool(body.get('verify_exp', False)),
         )
-    elif mode == 'authorization_code':
+    elif mode == GoogleOAuthMode.AUTHORIZATION_CODE:
         user = await upsert_user_from_google_oauth(
-            mode='authorization_code',
+            mode=mode,
             code=_parse_str_from_dict(body, 'code'),
             client_id=_parse_str_from_dict(body, 'client_id'),
             redirect_uri=_parse_str_from_dict(body, 'redirect_uri'),
-            user_token=_parse_str_from_dict(body, 'user_token', required=False),
+            user_token=_parse_str_from_dict(body, 'user_token', required=False),  # nopep8.
             verify_exp=bool(body.get('verify_exp', False)),
         )
-    else:
-        abort(400, f'unsupported mode "{mode}", must be "credential" or "authorization_code"')
 
     return asdict(user)
 
