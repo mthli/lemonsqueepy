@@ -87,13 +87,13 @@ async def register():
 
 
 # {
-#   'mode':               optional; str; 'credential' (default) or 'authorization_code'.
-#   'credential':         required if mode is 'credential'; str.
-#   'code':               required if mode is 'authorization_code'; str.
-#   'client_id':          required if mode is 'authorization_code'; str.
-#   'redirect_uri':       required if mode is 'authorization_code'; str.
-#   'user_token':         optional; str.
-#   'verify_exp':         optional; boolean.
+#   'mode':         optional; str; 'credential' (default) or 'authorization_code'.
+#   'credential':   required if mode is 'credential'; str.
+#   'code':         required if mode is 'authorization_code'; str.
+#   'client_id':    required if mode is 'authorization_code'; str.
+#   'redirect_uri': required if mode is 'authorization_code'; str.
+#   'user_token':   optional; str.
+#   'verify_exp':   optional; boolean.
 # }
 @app.post('/api/user/oauth/google')
 async def google_oauth():
