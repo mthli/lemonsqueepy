@@ -1,6 +1,7 @@
 import json
 import time
 
+import httpx
 import jwt
 import validators
 
@@ -21,6 +22,7 @@ from mongo.users import User, Token, TokenInfo, \
     upsert_user
 from rds import rds, get_str_from_rds, \
     GOOGLE_OAUTH_CLIENT_IDS, \
+    GOOGLE_OAUTH_CLIENT_SECRET, \
     LEMONSQUEEZY_SIGNING_SECRET
 
 # Unsupported asyncio for now.
@@ -72,10 +74,29 @@ def decrypt_user_token(token: str, secret: str = '') -> TokenInfo:
 
 
 async def upsert_user_from_google_oauth(
-    credential: str,
+    mode: str = 'credential',
+    credential: str = '',
+    code: str = '',
+    client_id: str = '',
+    redirect_uri: str = '',
     user_token: str = '',
     verify_exp: bool = False,
 ) -> User:
+    if mode == 'credential':
+        payload = _decode_credential_payload(credential, verify_exp)
+    elif mode == 'authorization_code':
+        payload = await _exchange_authorization_code(
+            code, client_id, redirect_uri, verify_exp)
+    else:
+        abort(400, f'unsupported mode, mode={mode}')
+
+    return await _upsert_user_from_payload(payload, user_token)
+
+
+def _decode_credential_payload(
+    credential: str,
+    verify_exp: bool = False,
+) -> dict:
     payload: dict = {}
 
     client_ids = rds.smembers(GOOGLE_OAUTH_CLIENT_IDS)
@@ -93,6 +114,64 @@ async def upsert_user_from_google_oauth(
     if not payload:
         abort(401, f'invalid credential, credential={credential}')
 
+    return payload
+
+
+async def _exchange_authorization_code(
+    code: str,
+    client_id: str,
+    redirect_uri: str,
+    verify_exp: bool = False,
+) -> dict:
+    client_secret = get_str_from_rds(GOOGLE_OAUTH_CLIENT_SECRET)
+
+    transport = httpx.AsyncHTTPTransport(retries=2)
+    client = httpx.AsyncClient(transport=transport)
+
+    try:
+        response = await client.post(
+            url='https://oauth2.googleapis.com/token',
+            data={
+                'code': code,
+                'client_id': client_id,
+                'client_secret': client_secret,
+                'redirect_uri': redirect_uri,
+                'grant_type': 'authorization_code',
+            },
+            timeout=10,
+            follow_redirects=True,
+        )
+    finally:
+        await client.aclose()
+
+    if not response.is_success:
+        abort(
+            401, f'token exchange failed, status={response.status_code}, body={response.text}')
+
+    data: dict = response.json()
+    id_token = data.get('id_token', '')
+    if not id_token:
+        abort(401, 'id_token not found in token response')
+
+    try:
+        signing_key = _google_jwk_client.get_signing_key_from_jwt(id_token)
+        return jwt.decode(
+            jwt=id_token,
+            key=signing_key.key,
+            algorithms=['RS256'],
+            audience=client_id,
+            issuer='https://accounts.google.com',
+            options={'verify_exp': verify_exp},
+        )
+    except Exception:
+        logger.exception('_exchange_authorization_code')
+        abort(401, 'invalid id_token in token response')
+
+
+async def _upsert_user_from_payload(
+    payload: dict,
+    user_token: str = '',
+) -> User:
     email = payload.get('email', '').strip()
     if not email:
         abort(401, '"email" not exists')

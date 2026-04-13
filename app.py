@@ -86,19 +86,37 @@ async def register():
 
 
 # {
-#   'credential': required; str.
-#   'user_token': optional; str.
-#   'verify_exp': optional; boolean.
+#   'mode':               optional; str; 'credential' (default) or 'authorization_code'.
+#   'credential':         required if mode is 'credential'; str.
+#   'code':               required if mode is 'authorization_code'; str.
+#   'client_id':          required if mode is 'authorization_code'; str.
+#   'redirect_uri':       required if mode is 'authorization_code'; str.
+#   'user_token':         optional; str.
+#   'verify_exp':         optional; boolean.
 # }
 @app.post('/api/user/oauth/google')
 async def google_oauth():
     body: dict = await request.get_json() or {}
+    mode = body.get('mode', 'credential')
 
-    user = await upsert_user_from_google_oauth(
-        credential=_parse_str_from_dict(body, 'credential'),
-        user_token=_parse_str_from_dict(body, 'user_token', required=False),
-        verify_exp=bool(body.get('verify_exp', False)),
-    )
+    if mode == 'credential':
+        user = await upsert_user_from_google_oauth(
+            mode='credential',
+            credential=_parse_str_from_dict(body, 'credential'),
+            user_token=_parse_str_from_dict(body, 'user_token', required=False),
+            verify_exp=bool(body.get('verify_exp', False)),
+        )
+    elif mode == 'authorization_code':
+        user = await upsert_user_from_google_oauth(
+            mode='authorization_code',
+            code=_parse_str_from_dict(body, 'code'),
+            client_id=_parse_str_from_dict(body, 'client_id'),
+            redirect_uri=_parse_str_from_dict(body, 'redirect_uri'),
+            user_token=_parse_str_from_dict(body, 'user_token', required=False),
+            verify_exp=bool(body.get('verify_exp', False)),
+        )
+    else:
+        abort(400, f'unsupported mode "{mode}", must be "credential" or "authorization_code"')
 
     return asdict(user)
 
