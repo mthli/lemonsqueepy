@@ -123,7 +123,7 @@ async def google_oauth():
     return asdict(user)
 
 
-# https://docs.lemonsqueezy.com/help/webhooks#webhook-requests
+# https://docs.lemonsqueezy.com/help/webhooks/webhook-requests
 #
 # FIXME (Matthew Lee)
 # Currently we strongly depends webhooks usability,

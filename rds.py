@@ -13,18 +13,18 @@ GOOGLE_OAUTH_CLIENT_IDS = 'google_oauth_client_ids'  # set.
 # just execute `HSET google_oauth_client_secrets "client_id" "client_secret"` in redis-cli.
 GOOGLE_OAUTH_CLIENT_SECRETS = 'google_oauth_client_secrets'  # hash.
 
+# Interact with the Lemon Squeezy backend.
+# https://docs.lemonsqueezy.com/guides/developer-guide/getting-started#api-overview
+LEMONSQUEEZY_API_KEY = 'lemonsqueezy_api_key'  # string.
+
 # For checking whether the requests are sent from Lemon Squeezy.
-# https://docs.lemonsqueezy.com/help/webhooks#signing-requests
+# https://docs.lemonsqueezy.com/help/webhooks/signing-requests
 #
 # We also use this secret to generate user token with AES-128 algorithm,
 # so please make sure that this secret is a **16 characters length** string,
 # and do not contain any leading and trailing whitespace characters,
 # for example "0123456789abcdef" (don't use it, just a example, haha).
 LEMONSQUEEZY_SIGNING_SECRET = 'lemonsqueezy_signing_secret'  # string.
-
-# Interact with the Lemon Squeezy backend.
-# https://docs.lemonsqueezy.com/guides/developer-guide/getting-started#api-overview
-LEMONSQUEEZY_API_KEY = 'lemonsqueezy_api_key'  # string.
 
 # Default host and port.
 rds = redis.from_url('redis://localhost:6379')
