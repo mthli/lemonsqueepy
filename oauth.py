@@ -85,8 +85,7 @@ async def upsert_user_from_google_oauth(
     if mode == 'credential':
         payload = _decode_credential_payload(credential, verify_exp)
     elif mode == 'authorization_code':
-        payload = await _exchange_authorization_code(
-            code, client_id, redirect_uri, verify_exp)
+        payload = await _exchange_authorization_code(code, client_id, redirect_uri, verify_exp)
     else:
         abort(400, f'unsupported mode, mode={mode}')
 
@@ -107,9 +106,10 @@ def _decode_credential_payload(
                 audience=cid.decode(),
                 verify_exp=verify_exp,
             )
-        except Exception as e:
-            logger.exception('_decode_google_oauth_credential')
+        except Exception:
+            logger.exception('_decode_credential_payload')
             pass  # DO NOTHING.
+
     if not payload:
         abort(401, f'invalid credential, credential={credential}')
 
@@ -149,8 +149,7 @@ async def _exchange_authorization_code(
         await client.aclose()
 
     if not response.is_success:
-        abort(
-            401, f'token exchange failed, status={response.status_code}, body={response.text}')
+        abort(response.status_code, response.text)
 
     data: dict = response.json()
     id_token = data.get('id_token', '')
@@ -161,7 +160,25 @@ async def _exchange_authorization_code(
         return _decode_google_jwt(id_token, client_id, verify_exp)
     except Exception:
         logger.exception('_exchange_authorization_code')
-        abort(401, 'invalid id_token in token response')
+        abort(401, f'invalid id_token, id_token={id_token}')
+
+
+# https://developers.google.com/identity/gsi/web/guides/verify-google-id-token
+# https://pyjwt.readthedocs.io/en/stable/usage.html#retrieve-rsa-signing-keys-from-a-jwks-endpoint
+def _decode_google_jwt(
+    token: str,
+    audience: str,
+    verify_exp: bool = False,
+) -> dict:
+    signing_key = _google_jwk_client.get_signing_key_from_jwt(token)
+    return jwt.decode(
+        jwt=token,
+        key=signing_key.key,
+        algorithms=['RS256'],
+        audience=audience,
+        issuer='https://accounts.google.com',
+        options={'verify_exp': verify_exp},
+    )
 
 
 async def _upsert_user_from_payload(
@@ -205,21 +222,3 @@ async def _upsert_user_from_payload(
 
     await upsert_user(user)
     return user
-
-
-# https://developers.google.com/identity/gsi/web/guides/verify-google-id-token
-# https://pyjwt.readthedocs.io/en/stable/usage.html#retrieve-rsa-signing-keys-from-a-jwks-endpoint
-def _decode_google_jwt(
-    token: str,
-    audience: str,
-    verify_exp: bool = False,
-) -> dict:
-    signing_key = _google_jwk_client.get_signing_key_from_jwt(token)
-    return jwt.decode(
-        jwt=token,
-        key=signing_key.key,
-        algorithms=['RS256'],
-        audience=audience,
-        issuer='https://accounts.google.com',
-        options={'verify_exp': verify_exp},
-    )
